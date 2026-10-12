@@ -1,0 +1,567 @@
+<title>Five-League Bet Board</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a fixture-board summary strip on top, then one detailed card per match, ordered by kick-off. */
+:root {
+  --bg: #F1F0EC;
+  --surface: #FFFFFF;
+  --surface-2: #E6E4DC;
+  --ink: #1A1A1F;
+  --ink-2: #57565E;
+  --line: #D2CFC4;
+  --accent: #1E6B4B;
+  --accent-ink: #FFFFFF;
+  --seg-h: #1F4E79;
+  --seg-d: #8A8A92;
+  --seg-a: #B9521A;
+  --seg-text: #FFFFFF;
+  --warn: #7A5200;
+  --warn-bg: #FBF0D5;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131316; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+    --line: #36363E; --accent: #5FC495; --accent-ink: #08241A;
+    --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+    --warn: #F0C46A; --warn-bg: #2E2410;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131316; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+  --line: #36363E; --accent: #5FC495; --accent-ink: #08241A;
+  --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+  --warn: #F0C46A; --warn-bg: #2E2410;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 28px 56px; }
+.wrap { max-width: 1060px; margin-inline: auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.05; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { font-size: clamp(38px, 8vw, 64px); letter-spacing: .005em; }
+.sub { color: var(--ink-2); max-width: 62ch; }
+
+.board { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.board-head h2 { font-size: 26px; }
+.row { display: grid; grid-template-columns: 64px minmax(0, 1.6fr) 96px minmax(0, 1fr) 96px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row.cols { padding-block: 8px; background: var(--surface-2); }
+.row .ko { font-family: var(--f-mono); font-size: 14px; }
+.row .fx { font-family: var(--f-display); font-weight: 600; font-size: 21px; line-height: 1.1; min-width: 0; }
+.row .fx span { color: var(--ink-2); font-weight: 600; font-size: 15px; padding-inline: 4px; }
+.score { font-family: var(--f-display); font-weight: 700; font-size: 30px; letter-spacing: .02em; text-align: center; background: var(--ink); color: var(--bg); border-radius: 6px; padding: 2px 0; }
+.pickcell { font-weight: 600; min-width: 0; }
+.conf { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; }
+.conf.high { color: var(--accent); }
+.conf.med { color: var(--seg-a); }
+.conf.low { color: var(--ink-2); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.team { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.team.away { text-align: right; align-items: flex-end; }
+.team h3 { font-size: 28px; overflow-wrap: anywhere; }
+.team .meta { font-size: 12.5px; color: var(--ink-2); }
+.big { font-family: var(--f-display); font-weight: 700; font-size: 44px; line-height: 1; text-align: center; white-space: nowrap; }
+.big small { display: block; font-family: var(--f-body); font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+.bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.seg { display: flex; align-items: center; justify-content: center; color: var(--seg-text); font-family: var(--f-mono); font-size: 13px; min-width: 0; }
+.seg.h { background: var(--seg-h); } .seg.d { background: var(--seg-d); } .seg.a { background: var(--seg-a); }
+.bar-key { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-2); margin-top: 5px; }
+.verdict { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.verdict .pill { background: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 4px 12px; border-radius: 99px; font-size: 14px; }
+ul.why { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.news { font-size: 13.5px; border-top: 1px dashed var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.news.unconfirmed { color: var(--ink-2); }
+.risk { font-size: 13.5px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 9px 12px; }
+.others { font-size: 13px; color: var(--ink-2); }
+
+.notes { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+.notes h2 { font-size: 24px; margin-bottom: 8px; }
+.notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.theme-btn { font: inherit; font-size: 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; cursor: pointer; }
+.top-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .row { grid-template-columns: 56px minmax(0, 1fr) 72px; grid-template-areas: "ko fx score" "ko pick conf"; row-gap: 6px; }
+  .row.cols { display: none; }
+  .row .ko { grid-area: ko; align-self: start; padding-top: 4px; }
+  .row .fx { grid-area: fx; }
+  .row .score { grid-area: score; }
+  .row .pickcell { grid-area: pick; font-size: 14px; }
+  .row .conf { grid-area: conf; }
+  .teams { grid-template-columns: 1fr 1fr; grid-template-areas: "h a" "s s"; }
+  .teams .big { grid-area: s; order: 3; }
+  .team.home { grid-area: h; } .team.away { grid-area: a; }
+}
+@media (prefers-reduced-motion: no-preference) { .seg { transition: flex-basis .3s; } }
+</style>
+
+<style>
+.ev { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.3fr) 64px 118px; gap: 14px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.ev:last-child { border-bottom: 0; }
+.ev.cols { padding-block: 8px; background: var(--surface-2); }
+.ev-name { min-width: 0; font-weight: 500; }
+.ev-name small { display: block; color: var(--ink-2); font-size: 12.5px; font-weight: 400; }
+.meter { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.track { position: relative; flex: 1; height: 12px; background: var(--surface-2); border-radius: 6px; min-width: 0; }
+.fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 6px; }
+.tick { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); border-radius: 1px; }
+.pct { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 14px; width: 44px; text-align: right; }
+.odds { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 14px; text-align: right; color: var(--ink-2); }
+.chip { font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; justify-self: end; white-space: nowrap; }
+.chip.fair, .chip.above { color: var(--accent); }
+.chip.above { background: var(--surface-2); }
+.chip.short { color: var(--seg-a); }
+.chip.none { color: var(--ink-2); }
+.match { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.match-head { padding: 18px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid var(--line); }
+.mh-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.mh-teams { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.mh-teams h3 { font-size: 30px; }
+.mh-teams h3 span { color: var(--ink-2); font-size: 20px; padding-inline: 6px; }
+.legend { font-size: 12.5px; color: var(--ink-2); padding: 10px 16px; border-top: 1px solid var(--line); display: flex; gap: 16px; flex-wrap: wrap; }
+.legend span::before { content: ""; display: inline-block; vertical-align: middle; margin-right: 6px; }
+.legend .l-fill::before { width: 18px; height: 8px; background: var(--accent); border-radius: 4px; }
+.legend .l-tick::before { width: 2px; height: 14px; background: var(--ink); }
+.matches { display: flex; flex-direction: column; gap: 22px; }
+.callout { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 12px 16px; font-size: 14px; }
+.callouts { display: flex; flex-direction: column; gap: 10px; }
+.sec-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.sec-title h2 { font-size: 26px; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--bg); padding-block: 8px; }
+.tab { font: inherit; font-weight: 600; font-size: 14px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 99px; padding: 7px 14px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tab small { font-weight: 500; opacity: .75; margin-left: 4px; }
+.panel { display: flex; flex-direction: column; gap: 22px; }
+@media (max-width: 720px) {
+  .ev { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name chip" "meter odds"; row-gap: 6px; }
+  .ev.cols { display: none; }
+  .ev .ev-name { grid-area: name; } .ev .meter { grid-area: meter; } .ev .odds { grid-area: odds; } .ev .chip { grid-area: chip; }
+}
+</style>
+<div class="wrap">
+  <header>
+    <div class="top-line">
+      <span class="label">Saturday 10 October 2026 · 24 matches in 5 leagues · Kick-offs in UK time (BST)</span>
+      <button class="theme-btn" id="themeBtn" type="button">Switch theme</button>
+    </div>
+    <h1>Five-League Bet Board</h1>
+    <p class="sub">The events most likely to happen in each of today's Premier League, Bundesliga, Ligue 1, La Liga and Serie A games. Every probability is my own estimate from goal and corner stats, blended with bookmaker prices from one site (captured 8 to 9 October). A high probability is not the same as a good bet, so each row also shows the price and the break-even point.</p>
+  </header>
+
+  <div class="callouts">
+    <div class="callout"><strong>No card data.</strong> No source gave usable team card averages for these games, so I have not ranked any card markets. Goals, team-to-score, double chance and corner markets are covered instead.</div>
+    <div class="callout"><strong>Heavy favourites now rate higher than on my earlier boards.</strong> Those boards used my own rough 1X2 bars. This board starts from bookmaker prices, which are better calibrated for big favourites. The largest changes: Bayern win 81% (was 58%), PSG 84% (was 66%), Barcelona 89% (was 78%), Hoffenheim 67% (was 52%), Napoli 62% (was 47%). I shaded PSG and Napoli below the market because of rotation and injuries.</div>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="League" id="tabs"></nav>
+  <div id="panels"></div>
+
+  <section class="notes" aria-labelledby="notes-h">
+    <div>
+      <h2 id="notes-h">How to read the numbers</h2>
+      <ul>
+        <li>The bar is my estimated chance. The black tick is the break-even chance at the odds (1 divided by the odds). If the bar ends before the tick, the price is shorter than my estimate.</li>
+        <li>"Close to fair" means my estimate is within 3 points of break-even. "Priced short" means it is lower. "Above the price" means it is 3 or more points higher. Bookmaker prices include a margin, so most rows are priced short.</li>
+        <li>Rows with no odds are estimates only. I could not check what a bookmaker would charge.</li>
+        <li>"Model goals" are the goals each team is expected to score in my estimate. Corner estimates are rougher than goal estimates.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Limits</h2>
+      <ul>
+        <li>Teams have played between 5 and 8 league games, and the stats are the last 10 league games including last season. Treat gaps of a few points as noise.</li>
+        <li>Line-ups are not confirmed, and previews disagree on several injury lists. Check line-ups about an hour before kick-off.</li>
+        <li>Combining several events into one bet multiplies the risk, and no result is guaranteed. Only stake money you can afford to lose.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Sources</h2>
+      <ul>
+        <li><a href="https://www.sportsgambler.com/betting-tips/football/real-madrid-vs-villarreal-prediction-lineups-odds-2026-10-10/">SportsGambler match pages</a> (stats and odds for all 24 matches, for example Real Madrid v Villarreal)</li>
+        <li>League tables and previews as on my earlier boards: Wikipedia tables, Sports Mole, Football Whispers, Stats Zone, DAZN, Flashscore</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+// p = my estimated chance (%), o = decimal odds seen (null if none)
+var LEAGUES = [
+{ id: "pl", name: "Premier League", matches: [
+ { ko: "12:30", home: "Arsenal", away: "Leeds United", p3: [68, 20, 12], xg: [1.9, 0.8], events: [
+  { n: "Arsenal to score", d: "2.0 a game at home (last 10)", p: 85, o: null },
+  { n: "Over 1.5 goals", d: "Model total 2.7 goals", p: 75, o: null },
+  { n: "Arsenal or draw", d: "Double chance", p: 88, o: 1.08 },
+  { n: "Arsenal to win most corners", d: "Most corners in 6 of the last 10", p: 77, o: 1.23 },
+  { n: "Arsenal win", d: "Won the last 8 meetings", p: 68, o: 1.40 },
+  { n: "Leeds to score", d: "1.1 a game away (last 10)", p: 55, o: null },
+  { n: "Over 2.5 goals", d: "Over 2.5 in 5 of Arsenal's last 10", p: 51, o: 1.81 },
+  { n: "Both teams to score", d: "Only 2 of Arsenal's last 10 had BTTS", p: 46, o: 2.06 }
+ ]},
+ { ko: "15:00", home: "Aston Villa", away: "Brentford", p3: [36, 27, 37], xg: [1.5, 1.5], events: [
+  { n: "Over 1.5 goals", d: "Model total 3.0 goals", p: 80, o: null },
+  { n: "Brentford to score", d: "1.7 a game overall (last 10)", p: 78, o: null },
+  { n: "Aston Villa to score", d: "1.5 a game at home (last 10)", p: 77, o: null },
+  { n: "Over 8.5 corners", d: "Villa 9.2 and Brentford 11.1 total a game", p: 76, o: null },
+  { n: "Brentford or draw", d: "Double chance", p: 64, o: 1.47 },
+  { n: "Both teams to score", d: "BTTS in 6 of 10 for each side", p: 61, o: 1.52 },
+  { n: "Over 2.5 goals", d: "Over 2.5 in 7 of 10 for each side", p: 58, o: 1.63 },
+  { n: "Over 9.5 corners", d: "Line is close to the average total", p: 58, o: 1.71 }
+ ]},
+ { ko: "15:00", home: "Chelsea", away: "AFC Bournemouth", p3: [58, 22, 20], xg: [2.1, 1.2], events: [
+  { n: "Chelsea to score", d: "1.5 a game (last 10)", p: 88, o: null },
+  { n: "Over 1.5 goals", d: "Chelsea over 2.5 in 9 of their last 10", p: 84, o: null },
+  { n: "Chelsea or draw", d: "Double chance", p: 80, o: 1.18 },
+  { n: "Over 8.5 corners", d: "Both average about 10 total a game", p: 75, o: null },
+  { n: "Bournemouth to score", d: "1.3 a game away (last 10)", p: 70, o: null },
+  { n: "Over 2.5 goals", d: "Model total 3.3 goals", p: 64, o: 1.50 },
+  { n: "Chelsea to win most corners", d: "Chelsea win 6.8 a game at home", p: 64, o: 1.38 },
+  { n: "Both teams to score", d: "Chelsea BTTS in 8 of last 10", p: 61, o: 1.53 },
+  { n: "Chelsea win", d: "Last three meetings were all draws", p: 58, o: 1.64 }
+ ]},
+ { ko: "15:00", home: "Ipswich Town", away: "Fulham", p3: [35, 27, 38], xg: [1.5, 1.2], events: [
+  { n: "Ipswich to score", d: "1.6 a game (last 10)", p: 78, o: null },
+  { n: "Over 1.5 goals", d: "Model total 2.7 goals", p: 74, o: null },
+  { n: "Over 8.5 corners", d: "Ipswich 8.8 and Fulham 10.2 total a game", p: 72, o: null },
+  { n: "Fulham to score", d: "0.9 a game (last 10), 0.6 away", p: 70, o: null },
+  { n: "Fulham or draw", d: "Double chance", p: 65, o: 1.44 },
+  { n: "Ipswich or draw", d: "Double chance", p: 62, o: 1.52 },
+  { n: "Over 9.5 corners", d: "Line is close to the average total", p: 55, o: 1.76 },
+  { n: "Both teams to score", d: "Ipswich BTTS in 6 of last 10", p: 55, o: 1.58 },
+  { n: "Over 2.5 goals", d: "Over 2.5 in 7 of Ipswich's last 10", p: 51, o: 1.74 }
+ ]},
+ { ko: "15:00", home: "Sunderland", away: "Brighton & Hove Albion", p3: [32, 27, 41], xg: [1.1, 1.6], events: [
+  { n: "Brighton to score", d: "2.3 a game (last 10), 1.7 away", p: 80, o: null },
+  { n: "Over 1.5 goals", d: "Model total 2.7 goals", p: 76, o: null },
+  { n: "Brighton or draw", d: "Double chance", p: 68, o: 1.38 },
+  { n: "Sunderland to score", d: "Only 0.8 a game at home (last 10)", p: 66, o: null },
+  { n: "Over 8.5 corners", d: "Brighton's games average 9.9 corners", p: 66, o: null },
+  { n: "Sunderland or draw", d: "Double chance", p: 59, o: 1.60 },
+  { n: "Both teams to score", d: "Only 2 of Sunderland's last 10 home games", p: 55, o: 1.62 },
+  { n: "Over 2.5 goals", d: "Over 2.5 in 8 of Brighton's last 10", p: 53, o: 1.80 },
+  { n: "Brighton win", d: "Won the last meeting 1-0", p: 41, o: 2.30 }
+ ]},
+ { ko: "17:30", home: "Manchester United", away: "Tottenham Hotspur", p3: [57, 23, 20], xg: [2.2, 1.0], events: [
+  { n: "Man United to score", d: "2.4 a game at home (last 10)", p: 89, o: null },
+  { n: "Over 1.5 goals", d: "United's home games: over 2.5 in 8 of 10", p: 84, o: null },
+  { n: "Man United or draw", d: "Double chance", p: 79, o: 1.19 },
+  { n: "Over 8.5 corners", d: "Tottenham's games average 11.8 corners", p: 78, o: null },
+  { n: "Man United over 1.5 goals", d: "Team total", p: 65, o: null },
+  { n: "Over 2.5 goals", d: "United BTTS and over 2.5 in 8 of 10 at home", p: 63, o: 1.48 },
+  { n: "Tottenham to score", d: "Only 0.8 a game (last 10)", p: 63, o: null },
+  { n: "Both teams to score", d: "Tottenham's attack is the doubt", p: 58, o: 1.50 },
+  { n: "Man United win", d: "Tottenham won 5 of the last 10 meetings", p: 57, o: 1.67 },
+  { n: "Over 10.5 corners", d: "Line is close to the average total", p: 52, o: 1.88 }
+ ]}
+]},
+{ id: "bl", name: "Bundesliga", matches: [
+ { ko: "14:30", home: "Hoffenheim", away: "Hamburger SV", p3: [67, 18, 15], xg: [2.5, 1.1], events: [
+  { n: "Hoffenheim to score", d: "1.8 a game at home (last 10)", p: 92, o: null },
+  { n: "Over 1.5 goals", d: "Hoffenheim over 2.5 in 9 of 10", p: 87, o: null },
+  { n: "Hoffenheim or draw", d: "Double chance", p: 85, o: 1.11 },
+  { n: "Over 8.5 corners", d: "Hoffenheim's games average 10.8", p: 78, o: null },
+  { n: "Hoffenheim over 1.5 goals", d: "Team total", p: 71, o: null },
+  { n: "Over 2.5 goals", d: "Model total 3.6 goals", p: 69, o: 1.38 },
+  { n: "Hoffenheim to win most corners", d: "7.3 won a game at home", p: 70, o: 1.25 },
+  { n: "Hamburg to score", d: "1.1 a game away, 2.6 conceded", p: 67, o: null },
+  { n: "Hoffenheim win", d: "Won both meetings last season", p: 67, o: 1.40 },
+  { n: "Both teams to score", d: "Hoffenheim BTTS in 8 of 10", p: 61, o: 1.54 }
+ ]},
+ { ko: "14:30", home: "FC Augsburg", away: "Bayern Munich", p3: [8, 11, 81], xg: [1.2, 3.3], events: [
+  { n: "Bayern to score", d: "3.6 a game (last 10)", p: 96, o: null },
+  { n: "Over 1.5 goals", d: "Model total 4.5 goals", p: 94, o: null },
+  { n: "Bayern or draw", d: "Double chance", p: 92, o: 1.03 },
+  { n: "Over 2.5 goals", d: "Over 2.5 in 9 of Augsburg's last 10", p: 83, o: 1.11 },
+  { n: "Over 8.5 corners", d: "Both average about 11 total", p: 83, o: null },
+  { n: "Bayern win", d: "Augsburg won the last meeting 2-1", p: 81, o: 1.16 },
+  { n: "Bayern to win most corners", d: "7.8 won a game", p: 74, o: 1.20 },
+  { n: "Both teams to score", d: "Augsburg BTTS in 8 of 10", p: 68, o: 1.41 },
+  { n: "Over 3.5 goals", d: "Model total 4.5 goals", p: 64, o: null },
+  { n: "Bayern over 2.5 goals", d: "Team total", p: 62, o: null }
+ ]},
+ { ko: "14:30", home: "Mainz 05", away: "Bayer Leverkusen", p3: [33, 24, 43], xg: [1.5, 1.8], events: [
+  { n: "Over 1.5 goals", d: "Model total 3.3 goals", p: 84, o: null },
+  { n: "Leverkusen to score", d: "2.0 a game (last 10)", p: 83, o: null },
+  { n: "Over 8.5 corners", d: "Mainz 10.3 and Leverkusen 11.8 total a game", p: 80, o: null },
+  { n: "Mainz to score", d: "1.5 a game at home (last 10)", p: 78, o: null },
+  { n: "Leverkusen or draw", d: "Double chance. Unbeaten vs Mainz in 6", p: 67, o: 1.40 },
+  { n: "Both teams to score", d: "BTTS in 7 of 10 for each side", p: 66, o: 1.40 },
+  { n: "Over 2.5 goals", d: "Over 2.5 in 6 or 7 of 10 for each", p: 65, o: 1.45 },
+  { n: "Mainz or draw", d: "Double chance", p: 57, o: 1.66 },
+  { n: "Leverkusen win", d: "Last meeting was a 1-1 draw", p: 43, o: 2.16 }
+ ]},
+ { ko: "14:30", home: "Union Berlin", away: "SV Elversberg", p3: [40, 25, 35], xg: [1.7, 1.5], events: [
+  { n: "Over 1.5 goals", d: "Union's games: over 2.5 in 10 of 10", p: 83, o: null },
+  { n: "Union to score", d: "1.6 a game, 1.5 at home (last 10)", p: 82, o: null },
+  { n: "Elversberg to score", d: "2.4 a game (last 10)", p: 78, o: null },
+  { n: "Over 8.5 corners", d: "Union 11.1 and Elversberg 8.9 total", p: 74, o: null },
+  { n: "Union or draw", d: "Double chance", p: 65, o: 1.44 },
+  { n: "Both teams to score", d: "BTTS in 7 of 10 for each side", p: 64, o: 1.46 },
+  { n: "Over 2.5 goals", d: "Union conceded 2.8 a game", p: 62, o: 1.52 },
+  { n: "Elversberg or draw", d: "Double chance", p: 60, o: 1.58 }
+ ]},
+ { ko: "14:30", home: "SC Paderborn", away: "VfB Stuttgart", p3: [20, 21, 59], xg: [1.4, 2.3], events: [
+  { n: "Stuttgart to score", d: "2.1 a game, over 2.5 in 10 of 10 away", p: 90, o: null },
+  { n: "Over 1.5 goals", d: "Model total 3.7 goals", p: 88, o: null },
+  { n: "Stuttgart or draw", d: "Double chance", p: 80, o: 1.18 },
+  { n: "Over 8.5 corners", d: "Stuttgart's games average 12.4", p: 79, o: null },
+  { n: "Paderborn to score", d: "2.3 a game at home (last 10)", p: 75, o: null },
+  { n: "Over 2.5 goals", d: "Stuttgart over 2.5 in 8 of 10", p: 71, o: 1.34 },
+  { n: "Both teams to score", d: "Both teams' BTTS 9 of 10 home/away", p: 67, o: 1.40 },
+  { n: "Stuttgart over 1.5 goals", d: "Team total", p: 67, o: null },
+  { n: "Stuttgart win", d: "Paderborn scored 1.2 a game overall", p: 59, o: 1.57 },
+  { n: "Over 10.5 corners", d: "Line is below Stuttgart's average", p: 52, o: 2.05 }
+ ]},
+ { ko: "17:30", home: "RB Leipzig", away: "Eintracht Frankfurt", p3: [61, 20, 19], xg: [2.35, 1.45], events: [
+  { n: "Leipzig to score", d: "2.6 a game at home (last 10)", p: 90, o: null },
+  { n: "Over 1.5 goals", d: "Model total 3.8 goals", p: 89, o: null },
+  { n: "Leipzig or draw", d: "Double chance", p: 81, o: 1.16 },
+  { n: "Over 8.5 corners", d: "Leipzig 11.2 and Frankfurt 10.9 total", p: 78, o: null },
+  { n: "Frankfurt to score", d: "BTTS in 10 of Frankfurt's last 10", p: 76, o: null },
+  { n: "Over 2.5 goals", d: "Leipzig at home: over 2.5 in 9 of 10", p: 73, o: 1.29 },
+  { n: "Leipzig over 1.5 goals", d: "Team total", p: 68, o: null },
+  { n: "Both teams to score", d: "Frankfurt conceded 2.2 a game", p: 68, o: 1.37 },
+  { n: "Over 9.5 corners", d: "Line is below the average total", p: 62, o: 1.67 },
+  { n: "Leipzig win", d: "Won the last 2 meetings", p: 61, o: 1.52 }
+ ]}
+]},
+{ id: "l1", name: "Ligue 1", matches: [
+ { ko: "16:15", home: "Lille", away: "Le Havre", p3: [67, 20, 13], xg: [2.0, 1.0], events: [
+  { n: "Lille or draw", d: "Double chance", p: 87, o: 1.08 },
+  { n: "Lille to score", d: "Heavy favourite at 1.40", p: 86, o: null },
+  { n: "Over 1.5 goals", d: "Model total 3.0 goals", p: 80, o: null },
+  { n: "Over 8.5 corners", d: "Le Havre's games average 10.0", p: 70, o: null },
+  { n: "Lille win", d: "Won 4 of the last 6 meetings", p: 67, o: 1.40 },
+  { n: "Le Havre to score", d: "BTTS in 6 of 10 away", p: 63, o: null },
+  { n: "Lille over 1.5 goals", d: "Team total", p: 60, o: null },
+  { n: "Over 2.5 goals", d: "Over 2.5 in only 2 of Lille's last 10", p: 58, o: 1.65 },
+  { n: "Both teams to score", d: "BTTS in 3 of Lille's last 10", p: 52, o: 1.85 }
+ ]},
+ { ko: "19:45", home: "Brest", away: "Angers", p3: [48, 26, 26], xg: [1.55, 1.25], events: [
+  { n: "Brest to score", d: "1.6 a game at home (last 10)", p: 79, o: null },
+  { n: "Over 1.5 goals", d: "Model total 2.8 goals", p: 77, o: null },
+  { n: "Brest or draw", d: "Double chance", p: 74, o: 1.27 },
+  { n: "Over 8.5 corners", d: "Brest 9.5 and Angers 10.6 total", p: 73, o: null },
+  { n: "Angers to score", d: "1.0 a game, 0.8 away", p: 71, o: null },
+  { n: "Both teams to score", d: "Brest BTTS in 7 of 10", p: 56, o: 1.68 },
+  { n: "Over 9.5 corners", d: "Line is close to the average total", p: 55, o: 1.78 },
+  { n: "Over 2.5 goals", d: "Over 2.5 in 4 of Angers' last 10", p: 53, o: 1.78 }
+ ]},
+ { ko: "19:45", home: "Lorient", away: "Paris FC", p3: [29, 28, 43], xg: [1.2, 1.4], events: [
+  { n: "Paris FC to score", d: "1.8 a game, 0.8 conceded (last 10)", p: 75, o: null },
+  { n: "Over 1.5 goals", d: "Model total 2.6 goals", p: 73, o: null },
+  { n: "Paris FC or draw", d: "Double chance", p: 71, o: 1.33 },
+  { n: "Lorient to score", d: "1.6 a game at home (last 10)", p: 70, o: null },
+  { n: "Over 8.5 corners", d: "Lorient 9.3 and Paris FC 8.0 total", p: 60, o: 1.67 },
+  { n: "Both teams to score", d: "BTTS in 7 of Lorient's last 10 at home", p: 53, o: 1.70 },
+  { n: "Over 2.5 goals", d: "Over 2.5 in 6 of Lorient's last 10", p: 49, o: 1.92 },
+  { n: "Paris FC win", d: "Unbeaten in 5", p: 43, o: 2.20 }
+ ]},
+ { ko: "19:45", home: "Paris Saint-Germain", away: "Le Mans", p3: [84, 10, 6], xg: [3.2, 0.7], events: [
+  { n: "PSG to score", d: "2.3 a game at home (last 10)", p: 96, o: null },
+  { n: "PSG or draw", d: "Double chance", p: 94, o: null },
+  { n: "Over 1.5 goals", d: "Model total 3.9 goals", p: 91, o: null },
+  { n: "PSG win", d: "Rotation likely before Man City midweek", p: 84, o: 1.08 },
+  { n: "PSG over 1.5 goals", d: "Team total", p: 82, o: null },
+  { n: "Over 2.5 goals", d: "PSG's home games: over 2.5 in 9 of 10", p: 76, o: 1.20 },
+  { n: "PSG to win most corners", d: "7.6 won a game at home", p: 82, o: 1.08 },
+  { n: "Over 8.5 corners", d: "PSG 8.9 and Le Mans 9.6 total", p: 66, o: null },
+  { n: "Over 3.5 goals", d: "Model total 3.9 goals", p: 57, o: null }
+ ]},
+ { ko: "19:45", home: "Monaco", away: "Toulouse", p3: [59, 22, 19], xg: [1.9, 1.2], events: [
+  { n: "Monaco to score", d: "2.0 a game at home (last 10)", p: 85, o: null },
+  { n: "Over 1.5 goals", d: "Model total 3.1 goals", p: 82, o: null },
+  { n: "Monaco or draw", d: "Double chance", p: 81, o: 1.16 },
+  { n: "Over 8.5 corners", d: "Both average 9.9 total", p: 72, o: null },
+  { n: "Toulouse to score", d: "BTTS in 7 of Toulouse's last 10 away", p: 70, o: null },
+  { n: "Over 2.5 goals", d: "Toulouse over 2.5 in 7 of 10", p: 60, o: 1.58 },
+  { n: "Monaco win", d: "6 wins in the last 10 meetings", p: 59, o: 1.58 },
+  { n: "Monaco to win most corners", d: "Monaco 5.1 won, Toulouse 4.0", p: 59, o: 1.49 },
+  { n: "Both teams to score", d: "BTTS in 7 of 10 for each side", p: 58, o: 1.62 }
+ ]}
+]},
+{ id: "ll", name: "La Liga", matches: [
+ { ko: "13:00", home: "Rayo Vallecano", away: "Athletic Club", p3: [35, 29, 36], xg: [1.4, 1.3], events: [
+  { n: "Over 8.5 corners", d: "Rayo 11.1 and Athletic 10.9 total a game", p: 78, o: null },
+  { n: "Over 1.5 goals", d: "Model total 2.7 goals", p: 75, o: null },
+  { n: "Rayo to score", d: "Rayo concede 16 in 7, score 11", p: 75, o: null },
+  { n: "Athletic to score", d: "Rayo's defence is the weak point", p: 73, o: null },
+  { n: "Athletic or draw", d: "Double chance. Unbeaten vs Rayo in 9", p: 65, o: 1.46 },
+  { n: "Rayo or draw", d: "Double chance", p: 64, o: 1.47 },
+  { n: "Both teams to score", d: "Odds make this a three-way toss-up", p: 55, o: 1.65 },
+  { n: "Over 2.5 goals", d: "Bookmaker prices split evenly on this line", p: 50, o: 1.88 }
+ ]},
+ { ko: "15:15", home: "Deportivo Alavés", away: "Atlético Madrid", p3: [22, 26, 52], xg: [1.15, 1.7], events: [
+  { n: "Atlético to score", d: "2.0 a game (last 10)", p: 82, o: null },
+  { n: "Over 1.5 goals", d: "Model total 2.85 goals", p: 78, o: null },
+  { n: "Atlético or draw", d: "Double chance", p: 79, o: 1.20 },
+  { n: "Over 8.5 corners", d: "Both average about 9.8 total", p: 72, o: null },
+  { n: "Alavés to score", d: "1.8 a game at home (last 10)", p: 68, o: null },
+  { n: "Both teams to score", d: "Alavés BTTS in 6 of 10 at home", p: 56, o: 1.68 },
+  { n: "Over 2.5 goals", d: "Atlético over 2.5 in 8 of 10", p: 54, o: 1.76 },
+  { n: "Atlético win", d: "Won 6 of the last 10 meetings", p: 52, o: 1.80 }
+ ]},
+ { ko: "17:30", home: "Barcelona", away: "Getafe", p3: [89, 7, 4], xg: [3.4, 0.55], events: [
+  { n: "Barcelona to score", d: "3.5 a game (last 10)", p: 97, o: null },
+  { n: "Over 1.5 goals", d: "Model total 3.95 goals", p: 90, o: null },
+  { n: "Barcelona win", d: "Never lost at home to Getafe in La Liga", p: 89, o: 1.07 },
+  { n: "Barcelona over 1.5 goals", d: "Team total", p: 85, o: null },
+  { n: "Over 8.5 corners", d: "Barcelona 11.8 total a game at home", p: 80, o: null },
+  { n: "Over 2.5 goals", d: "Over 2.5 in 8 of Barcelona's last 10", p: 75, o: 1.26 },
+  { n: "Barcelona over 2.5 goals", d: "Team total", p: 66, o: null },
+  { n: "Over 3.5 goals", d: "Model total 3.95 goals", p: 56, o: null },
+  { n: "Barcelona to win most corners", d: "7.3 won a game at home", p: 85, o: 1.05 }
+ ]},
+ { ko: "20:00", home: "Real Madrid", away: "Villarreal", p3: [70, 16, 14], xg: [2.5, 1.3], events: [
+  { n: "Real Madrid to score", d: "2.8 a game at home (last 10)", p: 92, o: null },
+  { n: "Over 1.5 goals", d: "Model total 3.8 goals", p: 90, o: null },
+  { n: "Real Madrid or draw", d: "Double chance", p: 87, o: 1.10 },
+  { n: "Over 8.5 corners", d: "Villarreal's games average 11.1", p: 77, o: null },
+  { n: "Villarreal to score", d: "BTTS in 8 of Villarreal's last 10", p: 75, o: null },
+  { n: "Over 2.5 goals", d: "Madrid at home: over 2.5 in 7 of 10", p: 75, o: 1.25 },
+  { n: "Real Madrid over 1.5 goals", d: "Team total", p: 71, o: null },
+  { n: "Real Madrid win", d: "Won the last 4 meetings; several injuries", p: 70, o: 1.35 },
+  { n: "Real Madrid to win most corners", d: "6.8 won a game at home", p: 70, o: 1.25 },
+  { n: "Both teams to score", d: "Madrid have no clean sheet in 5", p: 66, o: 1.45 }
+ ]}
+]},
+{ id: "sa", name: "Serie A", matches: [
+ { ko: "14:00", home: "Genoa", away: "Fiorentina", p3: [30, 29, 41], xg: [1.2, 1.4], events: [
+  { n: "Fiorentina to score", d: "1.5 a game away (last 10)", p: 75, o: null },
+  { n: "Over 1.5 goals", d: "Model total 2.6 goals", p: 73, o: null },
+  { n: "Over 7.5 corners", d: "Genoa 8.4 and Fiorentina 8.1 total", p: 72, o: null },
+  { n: "Genoa to score", d: "Only 3 goals in 5 league games", p: 70, o: null },
+  { n: "Fiorentina or draw", d: "Double chance. Unbeaten vs Genoa in 11", p: 70, o: 1.34 },
+  { n: "Genoa or draw", d: "Double chance", p: 59, o: 1.61 },
+  { n: "Over 8.5 corners", d: "Line is close to the average total", p: 55, o: 1.80 },
+  { n: "Both teams to score", d: "Odds make this close to even", p: 53, o: 1.74 },
+  { n: "Over 2.5 goals", d: "Over 2.5 in 3 of Genoa's last 10", p: 47, o: 1.98 }
+ ]},
+ { ko: "17:00", home: "Inter", away: "Parma", p3: [83, 12, 5], xg: [2.9, 0.7], events: [
+  { n: "Inter to score", d: "2.9 a game at home (last 10)", p: 94, o: null },
+  { n: "Over 1.5 goals", d: "Model total 3.6 goals", p: 87, o: null },
+  { n: "Inter win", d: "Won 7 of the last 10 meetings, no Parma wins", p: 83, o: 1.12 },
+  { n: "Inter to win most corners", d: "6.8 won a game at home", p: 81, o: 1.09 },
+  { n: "Inter over 1.5 goals", d: "Team total", p: 78, o: null },
+  { n: "Over 8.5 corners", d: "Parma away games average 11.3", p: 71, o: null },
+  { n: "Over 2.5 goals", d: "Parma over 2.5 in only 3 of 10", p: 69, o: 1.36 },
+  { n: "Parma to score", d: "0.8 a game (last 10)", p: 50, o: null },
+  { n: "Both teams to score", d: "Parma BTTS in 4 of 10", p: 45, o: 2.15 }
+ ]},
+ { ko: "19:45", home: "Napoli", away: "Frosinone", p3: [62, 22, 16], xg: [2.0, 1.1], events: [
+  { n: "Napoli to score", d: "1.6 a game at home (last 10)", p: 87, o: null },
+  { n: "Over 1.5 goals", d: "Model total 3.1 goals", p: 81, o: null },
+  { n: "Napoli or draw", d: "Several injuries shaded this down", p: 82, o: 1.10 },
+  { n: "Over 8.5 corners", d: "Frosinone's games average 12.8", p: 75, o: null },
+  { n: "Frosinone to score", d: "2.1 a game (last 10), 2.0 away", p: 70, o: null },
+  { n: "Over 2.5 goals", d: "Napoli's home games: over 2.5 in 6 of 10", p: 62, o: 1.50 },
+  { n: "Napoli win", d: "Long injury list; market says 66%", p: 62, o: 1.40 },
+  { n: "Napoli over 1.5 goals", d: "Team total", p: 60, o: null },
+  { n: "Both teams to score", d: "Frosinone BTTS in 7 of 10 away", p: 57, o: 1.68 }
+ ]}
+]}
+];
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+
+function evRow(e, matchLabel) {
+  var be = e.o ? 100 / e.o : null;
+  var chipCls = "none", chipTxt = "No odds";
+  if (be !== null) {
+    var diff = e.p - be;
+    if (diff >= 3) { chipCls = "above"; chipTxt = "Above the price"; }
+    else if (diff >= -3) { chipCls = "fair"; chipTxt = "Close to fair"; }
+    else { chipCls = "short"; chipTxt = "Priced short"; }
+  }
+  return '<div class="ev">' +
+    '<span class="ev-name">' + esc(e.n) + '<small>' + (matchLabel ? esc(matchLabel) + ' · ' : '') + esc(e.d) + '</small></span>' +
+    '<span class="meter"><span class="track"><span class="fill" style="width:' + e.p + '%"></span>' +
+      (be !== null ? '<span class="tick" style="left:' + be.toFixed(1) + '%" title="Break-even ' + be.toFixed(0) + '%"></span>' : '') +
+    '</span><span class="pct">' + e.p + '%</span></span>' +
+    '<span class="odds">' + (e.o ? e.o.toFixed(2) : '–') + '</span>' +
+    '<span class="chip ' + chipCls + '">' + chipTxt + '</span></div>';
+}
+
+var COLS = '<div class="ev cols label"><span>Event, most likely first</span><span>My estimate</span><span style="text-align:right">Odds</span><span style="text-align:right">Against the price</span></div>';
+
+function matchHtml(m) {
+  var evs = m.events.slice().sort(function (a, b) { return b.p - a.p; });
+  return '<article class="match">' +
+    '<div class="match-head">' +
+      '<div class="mh-top"><span class="label mono">' + m.ko + ' UK time</span><span class="label">Model goals ' + m.xg[0] + ' – ' + m.xg[1] + '</span></div>' +
+      '<div class="mh-teams"><h3>' + esc(m.home) + '<span>v</span>' + esc(m.away) + '</h3></div>' +
+      '<div><div class="bar" role="img" aria-label="' + esc(m.home) + ' ' + m.p3[0] + '%, draw ' + m.p3[1] + '%, ' + esc(m.away) + ' ' + m.p3[2] + '%">' +
+        '<div class="seg h" style="flex:' + m.p3[0] + '">' + m.p3[0] + '%</div>' +
+        '<div class="seg d" style="flex:' + m.p3[1] + '">' + m.p3[1] + '%</div>' +
+        '<div class="seg a" style="flex:' + m.p3[2] + '">' + m.p3[2] + '%</div></div>' +
+        '<div class="bar-key"><span>Home win</span><span>Draw</span><span>Away win</span></div></div>' +
+    '</div>' + COLS + evs.map(function (e) { return evRow(e, null); }).join("") +
+    '</article>';
+}
+
+function panelHtml(lg) {
+  var all = [];
+  lg.matches.forEach(function (m) {
+    m.events.forEach(function (e) { all.push({ n: e.n, d: e.d, p: e.p, o: e.o, match: m.home + " v " + m.away }); });
+  });
+  // top list: skip near-certain team-to-score rows above 95% to keep it informative
+  all.sort(function (a, b) { return b.p - a.p; });
+  var top = all.filter(function (e) { return e.p < 96; }).slice(0, 8);
+  return '<section class="board">' +
+    '<div class="sec-title"><h2>Most likely events: ' + esc(lg.name) + '</h2><span class="label">' + lg.matches.length + ' matches</span></div>' +
+    COLS.replace('Event, most likely first', 'Event') +
+    top.map(function (e) { return evRow(e, e.match); }).join("") +
+    '<div class="legend"><span class="l-fill">My estimated chance</span><span class="l-tick">Break-even chance at the quoted odds</span></div>' +
+    '</section>' +
+    '<div class="matches">' + lg.matches.map(matchHtml).join("") + '</div>';
+}
+
+var tabsEl = document.getElementById("tabs");
+var panelsEl = document.getElementById("panels");
+tabsEl.innerHTML = LEAGUES.map(function (lg, i) {
+  return '<button class="tab" role="tab" type="button" id="tab-' + lg.id + '" aria-controls="panel-' + lg.id + '" data-id="' + lg.id + '">' + esc(lg.name) + '<small>' + lg.matches.length + '</small></button>';
+}).join("");
+panelsEl.innerHTML = LEAGUES.map(function (lg) {
+  return '<div class="panel" role="tabpanel" id="panel-' + lg.id + '" aria-labelledby="tab-' + lg.id + '" hidden>' + panelHtml(lg) + '</div>';
+}).join("");
+
+function show(id) {
+  LEAGUES.forEach(function (lg) {
+    var on = lg.id === id;
+    document.getElementById("panel-" + lg.id).hidden = !on;
+    document.getElementById("tab-" + lg.id).setAttribute("aria-selected", on ? "true" : "false");
+  });
+  try { localStorage.setItem("fiveLeagueTab", id); } catch (e) {}
+}
+tabsEl.addEventListener("click", function (ev) {
+  var b = ev.target.closest(".tab");
+  if (b) show(b.getAttribute("data-id"));
+});
+var start = "pl";
+try { var s = localStorage.getItem("fiveLeagueTab"); if (s && document.getElementById("panel-" + s)) start = s; } catch (e) {}
+show(start);
+
+(function () {
+  var btn = document.getElementById("themeBtn");
+  btn.addEventListener("click", function () {
+    var root = document.documentElement;
+    var cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+})();
+</script>

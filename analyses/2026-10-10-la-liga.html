@@ -1,0 +1,265 @@
+<title>La Liga Matchday Board</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a fixture-board summary strip on top, then one detailed card per match, ordered by kick-off. */
+:root {
+  --bg: #F1EFEC;
+  --surface: #FFFFFF;
+  --surface-2: #E6E4DC;
+  --ink: #1A1A1F;
+  --ink-2: #57565E;
+  --line: #D2CFC4;
+  --accent: #4B3FA0;
+  --accent-ink: #FFFFFF;
+  --seg-h: #1F4E79;
+  --seg-d: #8A8A92;
+  --seg-a: #B9521A;
+  --seg-text: #FFFFFF;
+  --warn: #7A5200;
+  --warn-bg: #FBF0D5;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14131A; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+    --line: #36363E; --accent: #A99CFF; --accent-ink: #14103A;
+    --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+    --warn: #F0C46A; --warn-bg: #2E2410;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14131A; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+  --line: #36363E; --accent: #A99CFF; --accent-ink: #14103A;
+  --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+  --warn: #F0C46A; --warn-bg: #2E2410;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 28px 56px; }
+.wrap { max-width: 1060px; margin-inline: auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.05; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { font-size: clamp(38px, 8vw, 64px); letter-spacing: .005em; }
+.sub { color: var(--ink-2); max-width: 62ch; }
+
+.board { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.board-head h2 { font-size: 26px; }
+.row { display: grid; grid-template-columns: 64px minmax(0, 1.6fr) 96px minmax(0, 1fr) 96px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row.cols { padding-block: 8px; background: var(--surface-2); }
+.row .ko { font-family: var(--f-mono); font-size: 14px; }
+.row .fx { font-family: var(--f-display); font-weight: 600; font-size: 21px; line-height: 1.1; min-width: 0; }
+.row .fx span { color: var(--ink-2); font-weight: 600; font-size: 15px; padding-inline: 4px; }
+.score { font-family: var(--f-display); font-weight: 700; font-size: 30px; letter-spacing: .02em; text-align: center; background: var(--ink); color: var(--bg); border-radius: 6px; padding: 2px 0; }
+.pickcell { font-weight: 600; min-width: 0; }
+.conf { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; }
+.conf.high { color: var(--accent); }
+.conf.med { color: var(--seg-a); }
+.conf.low { color: var(--ink-2); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.team { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.team.away { text-align: right; align-items: flex-end; }
+.team h3 { font-size: 28px; overflow-wrap: anywhere; }
+.team .meta { font-size: 12.5px; color: var(--ink-2); }
+.big { font-family: var(--f-display); font-weight: 700; font-size: 44px; line-height: 1; text-align: center; white-space: nowrap; }
+.big small { display: block; font-family: var(--f-body); font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+.bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.seg { display: flex; align-items: center; justify-content: center; color: var(--seg-text); font-family: var(--f-mono); font-size: 13px; min-width: 0; }
+.seg.h { background: var(--seg-h); } .seg.d { background: var(--seg-d); } .seg.a { background: var(--seg-a); }
+.bar-key { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-2); margin-top: 5px; }
+.verdict { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.verdict .pill { background: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 4px 12px; border-radius: 99px; font-size: 14px; }
+ul.why { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.news { font-size: 13.5px; border-top: 1px dashed var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.news.unconfirmed { color: var(--ink-2); }
+.risk { font-size: 13.5px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 9px 12px; }
+.others { font-size: 13px; color: var(--ink-2); }
+
+.notes { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+.notes h2 { font-size: 24px; margin-bottom: 8px; }
+.notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.theme-btn { font: inherit; font-size: 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; cursor: pointer; }
+.top-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .row { grid-template-columns: 56px minmax(0, 1fr) 72px; grid-template-areas: "ko fx score" "ko pick conf"; row-gap: 6px; }
+  .row.cols { display: none; }
+  .row .ko { grid-area: ko; align-self: start; padding-top: 4px; }
+  .row .fx { grid-area: fx; }
+  .row .score { grid-area: score; }
+  .row .pickcell { grid-area: pick; font-size: 14px; }
+  .row .conf { grid-area: conf; }
+  .teams { grid-template-columns: 1fr 1fr; grid-template-areas: "h a" "s s"; }
+  .teams .big { grid-area: s; order: 3; }
+  .team.home { grid-area: h; } .team.away { grid-area: a; }
+}
+@media (prefers-reduced-motion: no-preference) { .seg { transition: flex-basis .3s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="top-line">
+      <span class="label">Saturday 10 October 2026 · Jornada 8 · Kick-offs in Spanish time (CEST)</span>
+      <button class="theme-btn" id="themeBtn" type="button">Switch theme</button>
+    </div>
+    <h1>La Liga Matchday Board</h1>
+    <p class="sub">Four games today, each with a predicted score, win/draw/loss odds and the reasons behind the pick. The odds are my own estimates, built from the league table, recent results and published previews. They are not bookmaker prices. For UK time, subtract one hour from every kick-off.</p>
+  </header>
+
+  <section class="board" aria-labelledby="sum-h">
+    <div class="board-head">
+      <h2 id="sum-h">Today's picks</h2>
+      <span class="label">Sorted by kick-off</span>
+    </div>
+    <div class="row cols label"><span>CEST</span><span>Match</span><span style="text-align:center">Score</span><span>Pick</span><span style="text-align:center">Confidence</span></div>
+    <div id="summary"></div>
+  </section>
+
+  <section class="cards" id="cards" aria-label="Match breakdowns"></section>
+
+  <section class="notes" aria-labelledby="notes-h">
+    <div>
+      <h2 id="notes-h">How to read this</h2>
+      <ul>
+        <li>Odds bars read home / draw / away and always add up to 100%.</li>
+        <li>Confidence reflects how far apart the two sides look, not how likely the exact score is.</li>
+        <li>The table is the 20-team La Liga table after Friday's games. Teams have played between 6 and 8 matches because of rearranged fixtures, so points are not directly comparable. Games played are shown next to Athletic's record.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>What I could not confirm</h2>
+      <ul>
+        <li>Confirmed line-ups. They come out about an hour before kick-off. Check them before relying on any pick.</li>
+        <li>Fitness of Raphinha (Barcelona), Valverde (Real Madrid) and the Getafe and Rayo players with late tests. Sources list them as doubts.</li>
+        <li>Some injury lists conflict between previews. Where they do, the card says so.</li>
+        <li>Kick-off times. A few sites show other times, which look like different time zones. I used Sky Sports' UK times plus one hour.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Sources</h2>
+      <ul>
+        <li><a href="https://en.wikipedia.org/wiki/2026%E2%80%9327_La_Liga">Wikipedia La Liga table</a> (updated after 9 Oct)</li>
+        <li><a href="https://www.skysports.com/la-liga-scores-fixtures">Sky Sports fixtures</a> and <a href="https://www.thestatsapi.com/football/league/la-liga/fixtures">TheStatsAPI fixtures</a></li>
+        <li><a href="https://thehardtackle.com/round-up/2026/10/09/barcelona-vs-getafe-preview-prediction-probable-lineups-tactics-team-news-key-stats">Hard Tackle Barcelona v Getafe</a> and <a href="https://thehardtackle.com/round-up/2026/10/09/real-madrid-vs-villarreal-preview-prediction-probable-lineups-tactics-team-news-key-stats">Real Madrid v Villarreal</a></li>
+        <li><a href="https://www.sportsmole.co.uk/football/atletico-madrid/race-for-the-la-liga-title/preview/alaves-vs-atletico-prediction-team-news-lineups_606502.html">Sports Mole Alavés v Atlético</a></li>
+        <li><a href="https://www.sportsgambler.com/betting-tips/football/rayo-vallecano-vs-athletic-club-prediction-lineups-odds-2026-10-10/">SportsGambler Rayo v Athletic</a> and <a href="https://onefootball.com/en/news/athletic-possible-line-up-for-rayo-trip-in-laliga-ea-sport-43587167">OneFootball Athletic line-up</a></li>
+        <li><a href="https://footballwhispers.com/blog/real-madrid-vs-villarreal-prediction-10-10-2026/">Football Whispers Real Madrid v Villarreal</a></li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+var MATCHES = [
+  {
+    ko: "14:00", home: "Rayo Vallecano", away: "Athletic Club",
+    hPos: 13, aPos: 10, hRec: "2-2-3 · 8 pts · GD -5", aRec: "2-2-2 (6 played) · 8 pts · GD +1",
+    score: [1, 1], p: [34, 30, 36], pick: "Draw or Athletic", conf: "low",
+    why: [
+      "The sides are level on 8 points. Athletic have conceded only 6 goals, the best defensive record in the league, while Rayo have conceded 16.",
+      "Athletic have not lost to Rayo in nine meetings (seven wins in the last ten), and the last one was 1-1 at Vallecas in February.",
+      "Rayo are tougher at home (five wins, four draws, one defeat in their last ten), and Athletic are weaker away (three wins and six defeats in their last ten)."
+    ],
+    risk: "Athletic's attack is thin without Nico Williams and Sancet, and Rayo's home form is solid. Bookmaker odds make this almost a three-way toss-up.",
+    others: "Previews point to 1-1 as the likeliest score and both teams to score. Odds at publication: Rayo 2.70, draw 3.30, Athletic 2.65.",
+    news: "Athletic: Nico Williams and Sancet are out with muscle injuries. Guruzeta and Dani Vivian are back, and the striker spot is between Guruzeta and Iñaki Williams. Rayo: Pedrosa is likely available, and Balliu and Luiz Felipe are doubts. Sources: OneFootball, SportsGambler (the Rayo list has inconsistencies)."
+  },
+  {
+    ko: "16:15", home: "Deportivo Alavés", away: "Atlético Madrid",
+    hPos: 6, aPos: 2, hRec: "3-2-2 · 11 pts · GD +5", aRec: "5-1-1 · 16 pts · GD +9",
+    score: [0, 1], p: [22, 28, 50], pick: "Atlético win", conf: "med",
+    why: [
+      "Atlético are second and come off a 2-1 win over Real Madrid in the derby, with wins at Sevilla (3-1) and Real Sociedad (3-0) before that.",
+      "Atlético have won 19 of 35 meetings in all competitions (Alavés 9), including a 1-0 win in January.",
+      "Alavés have the best defence in the league (0.86 goals conceded per game), so I expect a tight game decided by one goal."
+    ],
+    risk: "Sports Mole notes Alavés have a good home record against Atlético in recent seasons. Atlético play Manchester United in the Champions League next, so Simeone may rest players. Alavés have not won in their last three.",
+    others: "Sports Mole tips Atlético 1-0. Bookmakers make Atlético slight favourites at about 56%.",
+    news: "Alavés are without Mikel Rodríguez, Facundo Garcés and Ville Koski. For Atlético, sources disagree: Sports Mole reports no absences (Barrios and Sørloth recovering), while another preview lists Grimaldo, Barrios and Sørloth as doubtful."
+  },
+  {
+    ko: "18:30", home: "Barcelona", away: "Getafe",
+    hPos: 1, aPos: 12, hRec: "7-0-0 · 21 pts · GD +24", aRec: "2-2-3 · 8 pts · GD -3",
+    score: [4, 0], p: [78, 14, 8], pick: "Barcelona win", conf: "high",
+    why: [
+      "Barcelona have won all seven league games and all eight matches in all competitions, scoring 31 league goals and 19 in their last four home games.",
+      "Getafe have scored only three goals in their last five games, lost all three of their away league games and beaten only Málaga (1-0) recently.",
+      "Barcelona have never lost at home to Getafe in La Liga (14 wins in 16 meetings), and Getafe's last win over them was in October 2020."
+    ],
+    risk: "Getafe defend deep and win few games, so a narrow Barcelona win is possible. Barcelona's injury list is long: De Jong, Bardghji and Christensen are out, and Raphinha is a doubt.",
+    others: "Previews tip 4-0, 5-0 and 3-1, and one model gives Barcelona 68%.",
+    news: "Barcelona: Frenkie de Jong (knee), Roony Bardghji (knee) and Andreas Christensen (thigh) are out, Raphinha is a doubt after a thigh knock. Getafe: Juanmi and Christantus Uche are out, and Abdel Abqar and Kiko Femenía face late tests. Sources disagree on some Getafe statuses."
+  },
+  {
+    ko: "21:00", home: "Real Madrid", away: "Villarreal",
+    hPos: 4, aPos: 9, hRec: "5-0-2 · 15 pts · GD +10", aRec: "2-2-3 · 8 pts · GD +1",
+    score: [3, 1], p: [66, 18, 16], pick: "Real Madrid win", conf: "med",
+    why: [
+      "Real Madrid have scored four or more in three of their four home games, and have beaten Villarreal in each of the last four meetings (they have lost only 6 of 55).",
+      "Villarreal have won only two of their 15 away league games at the Bernabéu and have not kept a clean sheet in their last nine matches.",
+      "Madrid are six points behind Barcelona, so they need the win after losing 2-1 to Atlético in the derby."
+    ],
+    risk: "Madrid have gone five games without a clean sheet and are missing several defenders and key players. Villarreal have won their last two (3-1 against both Málaga and Levante) and score regularly away.",
+    others: "Previews tip Madrid 4-1, 3-1 and 2-1. Football Whispers backs over 2.5 goals and both teams to score.",
+    news: "Madrid: Mbappé and Konaté are expected to start despite knee knocks. Out: Militão, Rodrygo, Asencio and Mendy. Huijsen is suspended and Valverde is a major doubt. Villarreal: Tajon Buchanan is out, Comesaña is back and Mikautadze may start up front."
+  }
+];
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+var CONF = { high: "High", med: "Medium", low: "Low" };
+
+document.getElementById("summary").innerHTML = MATCHES.map(function (m) {
+  return '<div class="row">' +
+    '<span class="ko">' + m.ko + '</span>' +
+    '<span class="fx">' + esc(m.home) + '<span>v</span>' + esc(m.away) + '</span>' +
+    '<span class="score">' + m.score[0] + ' – ' + m.score[1] + '</span>' +
+    '<span class="pickcell">' + esc(m.pick) + '</span>' +
+    '<span class="conf ' + m.conf + '">' + CONF[m.conf] + '</span></div>';
+}).join("");
+
+document.getElementById("cards").innerHTML = MATCHES.map(function (m) {
+  var news = m.news
+    ? '<div class="news"><span class="label">Team news</span><span>' + esc(m.news) + '</span></div>'
+    : '<div class="news unconfirmed"><span class="label">Team news</span><span>No current injury or suspension report found. Check line-ups an hour before kick-off.</span></div>';
+  return '<article class="card">' +
+    '<div class="card-top"><span class="label mono">' + m.ko + ' CEST</span><span class="conf ' + m.conf + '">' + CONF[m.conf] + ' confidence</span></div>' +
+    '<div class="teams">' +
+      '<div class="team home"><h3>' + esc(m.home) + '</h3><span class="meta mono">#' + m.hPos + ' · ' + esc(m.hRec) + '</span></div>' +
+      '<div class="big"><small>Predicted</small>' + m.score[0] + ' – ' + m.score[1] + '</div>' +
+      '<div class="team away"><h3>' + esc(m.away) + '</h3><span class="meta mono">#' + m.aPos + ' · ' + esc(m.aRec) + '</span></div>' +
+    '</div>' +
+    '<div><div class="bar" role="img" aria-label="Home ' + m.p[0] + '%, draw ' + m.p[1] + '%, away ' + m.p[2] + '%">' +
+      '<div class="seg h" style="flex:' + m.p[0] + '">' + m.p[0] + '%</div>' +
+      '<div class="seg d" style="flex:' + m.p[1] + '">' + m.p[1] + '%</div>' +
+      '<div class="seg a" style="flex:' + m.p[2] + '">' + m.p[2] + '%</div></div>' +
+      '<div class="bar-key"><span>Home win</span><span>Draw</span><span>Away win</span></div></div>' +
+    '<div class="verdict"><span class="label">My pick</span><span class="pill">' + esc(m.pick) + '</span></div>' +
+    '<ul class="why">' + m.why.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join("") + '</ul>' +
+    '<p class="risk"><strong>Main risk.</strong> ' + esc(m.risk) + '</p>' +
+    '<p class="others">' + esc(m.others) + '</p>' + news +
+    '</article>';
+}).join("");
+
+(function () {
+  var btn = document.getElementById("themeBtn");
+  btn.addEventListener("click", function () {
+    var root = document.documentElement;
+    var cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+})();
+</script>

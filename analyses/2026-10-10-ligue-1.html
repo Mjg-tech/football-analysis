@@ -1,0 +1,281 @@
+<title>Ligue 1 Matchday Board</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a fixture-board summary strip on top, then one detailed card per match, ordered by kick-off. */
+:root {
+  --bg: #EFF1F4;
+  --surface: #FFFFFF;
+  --surface-2: #E1E5EB;
+  --ink: #1A1A1F;
+  --ink-2: #57565E;
+  --line: #CCD2DB;
+  --accent: #8E1F45;
+  --accent-ink: #FFFFFF;
+  --seg-h: #1F4E79;
+  --seg-d: #8A8A92;
+  --seg-a: #B9521A;
+  --seg-text: #FFFFFF;
+  --warn: #7A5200;
+  --warn-bg: #FBF0D5;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11131A; --surface: #1B1E27; --surface-2: #292D39; --ink: #EEEDE8; --ink-2: #A9A8B0;
+    --line: #373C4A; --accent: #F28CAE; --accent-ink: #2B0A15;
+    --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+    --warn: #F0C46A; --warn-bg: #2E2410;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11131A; --surface: #1B1E27; --surface-2: #292D39; --ink: #EEEDE8; --ink-2: #A9A8B0;
+  --line: #373C4A; --accent: #F28CAE; --accent-ink: #2B0A15;
+  --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+  --warn: #F0C46A; --warn-bg: #2E2410;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 28px 56px; }
+.wrap { max-width: 1060px; margin-inline: auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.05; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { font-size: clamp(38px, 8vw, 64px); letter-spacing: .005em; }
+.sub { color: var(--ink-2); max-width: 62ch; }
+
+.board { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.board-head h2 { font-size: 26px; }
+.row { display: grid; grid-template-columns: 64px minmax(0, 1.6fr) 96px minmax(0, 1fr) 96px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row.cols { padding-block: 8px; background: var(--surface-2); }
+.row .ko { font-family: var(--f-mono); font-size: 14px; }
+.row .fx { font-family: var(--f-display); font-weight: 600; font-size: 21px; line-height: 1.1; min-width: 0; }
+.row .fx span { color: var(--ink-2); font-weight: 600; font-size: 15px; padding-inline: 4px; }
+.score { font-family: var(--f-display); font-weight: 700; font-size: 30px; letter-spacing: .02em; text-align: center; background: var(--ink); color: var(--bg); border-radius: 6px; padding: 2px 0; }
+.pickcell { font-weight: 600; min-width: 0; }
+.conf { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; }
+.conf.high { color: var(--accent); }
+.conf.med { color: var(--seg-a); }
+.conf.low { color: var(--ink-2); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.team { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.team.away { text-align: right; align-items: flex-end; }
+.team h3 { font-size: 28px; overflow-wrap: anywhere; }
+.team .meta { font-size: 12.5px; color: var(--ink-2); }
+.big { font-family: var(--f-display); font-weight: 700; font-size: 44px; line-height: 1; text-align: center; white-space: nowrap; }
+.big small { display: block; font-family: var(--f-body); font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+.bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.seg { display: flex; align-items: center; justify-content: center; color: var(--seg-text); font-family: var(--f-mono); font-size: 13px; min-width: 0; }
+.seg.h { background: var(--seg-h); } .seg.d { background: var(--seg-d); } .seg.a { background: var(--seg-a); }
+.bar-key { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-2); margin-top: 5px; }
+.verdict { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.verdict .pill { background: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 4px 12px; border-radius: 99px; font-size: 14px; }
+ul.why { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.news { font-size: 13.5px; border-top: 1px dashed var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.news.unconfirmed { color: var(--ink-2); }
+.risk { font-size: 13.5px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 9px 12px; }
+.others { font-size: 13px; color: var(--ink-2); }
+
+.notes { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+.notes h2 { font-size: 24px; margin-bottom: 8px; }
+.notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.theme-btn { font: inherit; font-size: 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; cursor: pointer; }
+.top-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .row { grid-template-columns: 56px minmax(0, 1fr) 72px; grid-template-areas: "ko fx score" "ko pick conf"; row-gap: 6px; }
+  .row.cols { display: none; }
+  .row .ko { grid-area: ko; align-self: start; padding-top: 4px; }
+  .row .fx { grid-area: fx; }
+  .row .score { grid-area: score; }
+  .row .pickcell { grid-area: pick; font-size: 14px; }
+  .row .conf { grid-area: conf; }
+  .teams { grid-template-columns: 1fr 1fr; grid-template-areas: "h a" "s s"; }
+  .teams .big { grid-area: s; order: 3; }
+  .team.home { grid-area: h; } .team.away { grid-area: a; }
+}
+@media (prefers-reduced-motion: no-preference) { .seg { transition: flex-basis .3s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="top-line">
+      <span class="label">Saturday 10 October 2026 · Journée 6 · Kick-offs in French time (CEST)</span>
+      <button class="theme-btn" id="themeBtn" type="button">Switch theme</button>
+    </div>
+    <h1>Ligue 1 Matchday Board</h1>
+    <p class="sub">Five games today, each with a predicted score, win/draw/loss odds and the reasons behind the pick. The odds are my own estimates, built from the league table, recent results and published previews. They are not bookmaker prices. For UK time, subtract one hour from every kick-off.</p>
+  </header>
+
+  <section class="board" aria-labelledby="sum-h">
+    <div class="board-head">
+      <h2 id="sum-h">Today's picks</h2>
+      <span class="label">Sorted by kick-off</span>
+    </div>
+    <div class="row cols label"><span>CEST</span><span>Match</span><span style="text-align:center">Score</span><span>Pick</span><span style="text-align:center">Confidence</span></div>
+    <div id="summary"></div>
+  </section>
+
+  <section class="cards" id="cards" aria-label="Match breakdowns"></section>
+
+  <section class="notes" aria-labelledby="notes-h">
+    <div>
+      <h2 id="notes-h">How to read this</h2>
+      <ul>
+        <li>Odds bars read home / draw / away and always add up to 100%.</li>
+        <li>Confidence reflects how far apart the two sides look, not how likely the exact score is.</li>
+        <li>The table is the 18-team Ligue 1 table after Friday's Lens 2–1 Lyon game. Most teams have played five matches, so every form line rests on a small sample.</li>
+        <li>Five more games follow on Sunday and are not covered here.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>What I could not confirm</h2>
+      <ul>
+        <li>Confirmed line-ups. They come out about an hour before kick-off. Check them before relying on any pick.</li>
+        <li>Team news for Brest and Angers. I found none for this season.</li>
+        <li>Kick-off times. Two sites list Brest v Angers and Lorient v Paris FC at 14:45. The Goal and TNT Sports schedules and most previews show 20:45 CEST (19:45 UK), which is what I used.</li>
+        <li>Monaco's team news. One source says nobody is unavailable, another says Brunner is suspended and Golovin is injured.</li>
+        <li>PSG's squad. Ousmane Dembélé and Nuno Mendes are reported rested, and Hakimi may be spared, but I could not confirm the starting XI.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Sources</h2>
+      <ul>
+        <li><a href="https://en.wikipedia.org/wiki/2026%E2%80%9327_Ligue_1">Wikipedia Ligue 1 table</a> (updated after 9 Oct)</li>
+        <li><a href="https://www.goal.com/en/competition/ligue-1/fixtures-results/dm5ka0os1e3dxcp3vh05kmp33">Goal fixtures</a> and <a href="https://www.tntsports.co.uk/football/ligue-1/calendar-results.shtml">TNT Sports fixtures</a></li>
+        <li><a href="https://www.flashscore.fr/actualites/football-ligue-1-ligue-1-pronostics-meilleurs-paris-et-cotes-6e-journee/l6xbY4MU/">Flashscore journée 6 pronostics</a></li>
+        <li><a href="https://www.flashscore.fr/actualites/football-ligue-1-psg-le-mans-ou-regarder-le-match-de-ligue-1-j6-heure-et-compos/SjOJrzTh/">Flashscore PSG v Le Mans team news</a></li>
+        <li><a href="https://www.eurosport.fr/paris-sportifs/pronostics/psg-le-mans-pronostics-conseils-et-cotes-ligue-1/">Eurosport PSG v Le Mans</a></li>
+        <li><a href="https://www.thestatszone.com/lorient-vs-paris-preview-team-news-prediction-228528">Stats Zone Lorient v Paris FC</a> and <a href="https://footballwhispers.com/blog/monaco-vs-toulouse-prediction-10-10-2026/">Football Whispers Monaco v Toulouse</a></li>
+        <li><a href="https://tips.gg/article/brest-vs-angers-10-10-2026/">Tips.gg Brest v Angers</a></li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+var MATCHES = [
+  {
+    ko: "17:15", home: "Lille", away: "Le Havre",
+    hPos: 4, aPos: 18, hRec: "3-1-1 · 10 pts · GD +4", aRec: "0-2-3 · 2 pts · GD -3",
+    score: [2, 0], p: [68, 20, 12], pick: "Lille win", conf: "high",
+    why: [
+      "Le Havre are bottom, still without a win (two draws, three defeats), and lost 2-1 to Brest and 3-2 to Toulouse.",
+      "Lille have lost only once, at Nice (2-1), beat Troyes 2-0 and drew 2-2 with PSG after leading 2-0. Ayase Ueda has scored three times in his last four games.",
+      "Le Havre are missing Mpasi, Zagadou and Mambimbi, which weakens a side that has already conceded 7 in five."
+    ],
+    risk: "Lille play Arsenal in the Champions League straight after this game, so some rotation is possible. A tired or changed side could drop points.",
+    others: "Flashscore backs Lille at odds of 1.39, which implies about a 72% chance.",
+    news: "Lille are without Hamza Igamane and Ethan Mbappé. Le Havre are without Lionel Mpasi, Stephan Zagadou and Felix Mambimbi. Source: Flashscore."
+  },
+  {
+    ko: "20:45", home: "Brest", away: "Angers",
+    hPos: 12, aPos: 8, hRec: "1-2-2 · 5 pts · GD -1", aRec: "2-1-2 · 7 pts · GD +1",
+    score: [1, 0], p: [40, 31, 29], pick: "Brest narrowly", conf: "low",
+    why: [
+      "Brest are at home and have the bookmakers' near-50% favourite tag, but they have lost two in a row and scored only three goals in their last three games.",
+      "Angers sit 8th, two points ahead of Brest, and have scored in four of their last five games.",
+      "Brest have not beaten Angers by more than one goal in any of their last three meetings, so I expect a tight, low-scoring game."
+    ],
+    risk: "The two sides are close in the table and I found no team news for either. A draw is almost as likely as a Brest win.",
+    others: "Tips.gg expects a tighter game than the odds suggest and recommends under 2.5 goals with both teams not to score.",
+    news: null
+  },
+  {
+    ko: "20:45", home: "Lorient", away: "Paris FC",
+    hPos: 13, aPos: 3, hRec: "1-2-2 · 5 pts · GD -1", aRec: "3-2-0 · 11 pts · GD +5",
+    score: [1, 2], p: [25, 27, 48], pick: "Paris FC win", conf: "med",
+    why: [
+      "Paris FC are unbeaten in five (three wins, two draws) and have conceded only 3 goals. Lassine Sinayoko is joint-top scorer in the league with four.",
+      "Lorient have won one of their last five league games and sit 13th.",
+      "Previews mostly favour Paris FC, with one giving them about 47% and calling it a win but not a comfortable one."
+    ],
+    risk: "Lorient have a strong home record against Paris FC (six wins and a draw in seven meetings, by one source), and their exact tally differs between sources.",
+    others: "Previews back Paris FC, with one tipping 1-2.",
+    news: "Lorient have fresh concerns over Noah Mbamba and Panos Katseris, and Bandiougou Fadiga is returning from injury. Paris FC report no new injuries or suspensions. Source: Stats Zone."
+  },
+  {
+    ko: "20:45", home: "Paris Saint-Germain", away: "Le Mans",
+    hPos: 6, aPos: 10, hRec: "2-2-1 · 8 pts · GD +1", aRec: "1-3-1 · 6 pts · GD 0",
+    score: [2, 1], p: [66, 20, 14], pick: "PSG win", conf: "med",
+    why: [
+      "PSG have won their last two league games, at Brest and at Marseille, and have scored 8 in five. Their attack is deep (Doué, Akliouche, Godts and Kvaratskhelia in the probable line-up).",
+      "Le Mans have conceded in every game this season and are missing top scorer Adil Bourabaa and suspended defender Djibril Sidibé.",
+      "PSG lead the head-to-head 11 wins, 3 draws, 2 defeats in 16 meetings, and won 2-0 at Le Mans in the Coupe de France in February 2025."
+    ],
+    risk: "PSG have not won at home in the league this season (they lost 2-1 to Monaco at the Parc) and face Manchester City on Wednesday, so rotation is likely. Le Mans have only lost once, at Rennes.",
+    others: "Eurosport tips PSG 2-1, Flashscore backs PSG with over 2.5 goals, and Sportytrader tips PSG with over 3.5 goals.",
+    news: "PSG: Senny Mayulu is out for about four weeks, Ferran Torres had no successful fitness test, Hakimi may be spared and Zaïre-Emery could play. Le Mans: Sidibé is suspended and Bourabaa is out. Sources: Flashscore, Eurosport."
+  },
+  {
+    ko: "20:45", home: "Monaco", away: "Toulouse",
+    hPos: 1, aPos: 14, hRec: "4-1-0 · 13 pts · GD +5", aRec: "1-2-2 · 5 pts · GD -2",
+    score: [2, 1], p: [62, 22, 16], pick: "Monaco win", conf: "high",
+    why: [
+      "Monaco lead the league, are unbeaten and have beaten Marseille (2-0), PSG (2-1) and Lens (2-1).",
+      "Toulouse have conceded 9 goals without a clean sheet, and three of their last four games had three or more goals. They have not won at Monaco since February 2024.",
+      "Toulouse can score (7 in five games, including a 3-2 win over Le Havre), so I expect them to get one."
+    ],
+    risk: "Monaco play in the Conference League at Sofia next, so rotation is possible. Last season these sides drew 2-2.",
+    others: "Football Whispers tips a Monaco win, 3-1. Flashscore points to over 2.5 goals.",
+    news: "Sources conflict. OneFootball reports Monaco have no unavailable players, while Stats Zone says Paris Brunner is suspended and Aleksandr Golovin is injured."
+  }
+];
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+var CONF = { high: "High", med: "Medium", low: "Low" };
+
+document.getElementById("summary").innerHTML = MATCHES.map(function (m) {
+  return '<div class="row">' +
+    '<span class="ko">' + m.ko + '</span>' +
+    '<span class="fx">' + esc(m.home) + '<span>v</span>' + esc(m.away) + '</span>' +
+    '<span class="score">' + m.score[0] + ' – ' + m.score[1] + '</span>' +
+    '<span class="pickcell">' + esc(m.pick) + '</span>' +
+    '<span class="conf ' + m.conf + '">' + CONF[m.conf] + '</span></div>';
+}).join("");
+
+document.getElementById("cards").innerHTML = MATCHES.map(function (m) {
+  var news = m.news
+    ? '<div class="news"><span class="label">Team news</span><span>' + esc(m.news) + '</span></div>'
+    : '<div class="news unconfirmed"><span class="label">Team news</span><span>No current injury or suspension report found. Check line-ups an hour before kick-off.</span></div>';
+  return '<article class="card">' +
+    '<div class="card-top"><span class="label mono">' + m.ko + ' CEST</span><span class="conf ' + m.conf + '">' + CONF[m.conf] + ' confidence</span></div>' +
+    '<div class="teams">' +
+      '<div class="team home"><h3>' + esc(m.home) + '</h3><span class="meta mono">#' + m.hPos + ' · ' + esc(m.hRec) + '</span></div>' +
+      '<div class="big"><small>Predicted</small>' + m.score[0] + ' – ' + m.score[1] + '</div>' +
+      '<div class="team away"><h3>' + esc(m.away) + '</h3><span class="meta mono">#' + m.aPos + ' · ' + esc(m.aRec) + '</span></div>' +
+    '</div>' +
+    '<div><div class="bar" role="img" aria-label="Home ' + m.p[0] + '%, draw ' + m.p[1] + '%, away ' + m.p[2] + '%">' +
+      '<div class="seg h" style="flex:' + m.p[0] + '">' + m.p[0] + '%</div>' +
+      '<div class="seg d" style="flex:' + m.p[1] + '">' + m.p[1] + '%</div>' +
+      '<div class="seg a" style="flex:' + m.p[2] + '">' + m.p[2] + '%</div></div>' +
+      '<div class="bar-key"><span>Home win</span><span>Draw</span><span>Away win</span></div></div>' +
+    '<div class="verdict"><span class="label">My pick</span><span class="pill">' + esc(m.pick) + '</span></div>' +
+    '<ul class="why">' + m.why.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join("") + '</ul>' +
+    '<p class="risk"><strong>Main risk.</strong> ' + esc(m.risk) + '</p>' +
+    '<p class="others">' + esc(m.others) + '</p>' + news +
+    '</article>';
+}).join("");
+
+(function () {
+  var btn = document.getElementById("themeBtn");
+  btn.addEventListener("click", function () {
+    var root = document.documentElement;
+    var cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+})();
+</script>

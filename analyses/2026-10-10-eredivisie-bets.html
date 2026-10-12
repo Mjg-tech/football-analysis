@@ -1,0 +1,330 @@
+<title>Eredivisie Bet Board</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a fixture-board summary strip on top, then one detailed card per match, ordered by kick-off. */
+:root {
+  --bg: #F1F0EC;
+  --surface: #FFFFFF;
+  --surface-2: #E6E4DC;
+  --ink: #1A1A1F;
+  --ink-2: #57565E;
+  --line: #D2CFC4;
+  --accent: #1E6B4B;
+  --accent-ink: #FFFFFF;
+  --seg-h: #1F4E79;
+  --seg-d: #8A8A92;
+  --seg-a: #B9521A;
+  --seg-text: #FFFFFF;
+  --warn: #7A5200;
+  --warn-bg: #FBF0D5;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131316; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+    --line: #36363E; --accent: #5FC495; --accent-ink: #08241A;
+    --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+    --warn: #F0C46A; --warn-bg: #2E2410;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131316; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+  --line: #36363E; --accent: #5FC495; --accent-ink: #08241A;
+  --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+  --warn: #F0C46A; --warn-bg: #2E2410;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 28px 56px; }
+.wrap { max-width: 1060px; margin-inline: auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.05; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { font-size: clamp(38px, 8vw, 64px); letter-spacing: .005em; }
+.sub { color: var(--ink-2); max-width: 62ch; }
+
+.board { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.board-head h2 { font-size: 26px; }
+.row { display: grid; grid-template-columns: 64px minmax(0, 1.6fr) 96px minmax(0, 1fr) 96px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row.cols { padding-block: 8px; background: var(--surface-2); }
+.row .ko { font-family: var(--f-mono); font-size: 14px; }
+.row .fx { font-family: var(--f-display); font-weight: 600; font-size: 21px; line-height: 1.1; min-width: 0; }
+.row .fx span { color: var(--ink-2); font-weight: 600; font-size: 15px; padding-inline: 4px; }
+.score { font-family: var(--f-display); font-weight: 700; font-size: 30px; letter-spacing: .02em; text-align: center; background: var(--ink); color: var(--bg); border-radius: 6px; padding: 2px 0; }
+.pickcell { font-weight: 600; min-width: 0; }
+.conf { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; }
+.conf.high { color: var(--accent); }
+.conf.med { color: var(--seg-a); }
+.conf.low { color: var(--ink-2); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.team { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.team.away { text-align: right; align-items: flex-end; }
+.team h3 { font-size: 28px; overflow-wrap: anywhere; }
+.team .meta { font-size: 12.5px; color: var(--ink-2); }
+.big { font-family: var(--f-display); font-weight: 700; font-size: 44px; line-height: 1; text-align: center; white-space: nowrap; }
+.big small { display: block; font-family: var(--f-body); font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+.bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.seg { display: flex; align-items: center; justify-content: center; color: var(--seg-text); font-family: var(--f-mono); font-size: 13px; min-width: 0; }
+.seg.h { background: var(--seg-h); } .seg.d { background: var(--seg-d); } .seg.a { background: var(--seg-a); }
+.bar-key { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-2); margin-top: 5px; }
+.verdict { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.verdict .pill { background: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 4px 12px; border-radius: 99px; font-size: 14px; }
+ul.why { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.news { font-size: 13.5px; border-top: 1px dashed var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.news.unconfirmed { color: var(--ink-2); }
+.risk { font-size: 13.5px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 9px 12px; }
+.others { font-size: 13px; color: var(--ink-2); }
+
+.notes { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+.notes h2 { font-size: 24px; margin-bottom: 8px; }
+.notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.theme-btn { font: inherit; font-size: 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; cursor: pointer; }
+.top-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .row { grid-template-columns: 56px minmax(0, 1fr) 72px; grid-template-areas: "ko fx score" "ko pick conf"; row-gap: 6px; }
+  .row.cols { display: none; }
+  .row .ko { grid-area: ko; align-self: start; padding-top: 4px; }
+  .row .fx { grid-area: fx; }
+  .row .score { grid-area: score; }
+  .row .pickcell { grid-area: pick; font-size: 14px; }
+  .row .conf { grid-area: conf; }
+  .teams { grid-template-columns: 1fr 1fr; grid-template-areas: "h a" "s s"; }
+  .teams .big { grid-area: s; order: 3; }
+  .team.home { grid-area: h; } .team.away { grid-area: a; }
+}
+@media (prefers-reduced-motion: no-preference) { .seg { transition: flex-basis .3s; } }
+</style>
+
+<style>
+.top-list { display: flex; flex-direction: column; }
+.ev { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.3fr) 64px 118px; gap: 14px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.ev:last-child { border-bottom: 0; }
+.ev.cols { padding-block: 8px; background: var(--surface-2); }
+.ev-name { min-width: 0; font-weight: 500; }
+.ev-name small { display: block; color: var(--ink-2); font-size: 12.5px; font-weight: 400; }
+.meter { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.track { position: relative; flex: 1; height: 12px; background: var(--surface-2); border-radius: 6px; min-width: 0; }
+.fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 6px; }
+.tick { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); border-radius: 1px; }
+.pct { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 14px; width: 44px; text-align: right; }
+.odds { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 14px; text-align: right; color: var(--ink-2); }
+.chip { font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; justify-self: end; white-space: nowrap; }
+.chip.fair { color: var(--accent); }
+.chip.short { color: var(--seg-a); }
+.chip.none { color: var(--ink-2); }
+.match { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.match-head { padding: 18px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid var(--line); }
+.legend { font-size: 12.5px; color: var(--ink-2); padding: 10px 16px; border-top: 1px solid var(--line); display: flex; gap: 16px; flex-wrap: wrap; }
+.legend span::before { content: ""; display: inline-block; vertical-align: middle; margin-right: 6px; }
+.legend .l-fill::before { width: 18px; height: 8px; background: var(--accent); border-radius: 4px; }
+.legend .l-tick::before { width: 2px; height: 14px; background: var(--ink); }
+.matches { display: flex; flex-direction: column; gap: 22px; }
+.callout { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 12px 16px; font-size: 14px; }
+.sec-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.sec-title h2 { font-size: 26px; }
+@media (max-width: 720px) {
+  .ev { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name chip" "meter odds"; row-gap: 6px; }
+  .ev.cols { display: none; }
+  .ev .ev-name { grid-area: name; } .ev .meter { grid-area: meter; } .ev .odds { grid-area: odds; } .ev .chip { grid-area: chip; }
+}
+</style>
+<div class="wrap">
+  <header>
+    <div class="top-line">
+      <span class="label">Saturday 10 October 2026 · Speelronde 8 · Kick-offs in Dutch time (CEST)</span>
+      <button class="theme-btn" id="themeBtn" type="button">Switch theme</button>
+    </div>
+    <h1>Eredivisie Bet Board</h1>
+    <p class="sub">The four Saturday games, with the events most likely to happen in each. Every probability is my own estimate from team goal, corner and form stats, cross-checked against bookmaker prices from one site (captured 8 October). A high probability is not the same as a good bet, so each row also shows the price and the break-even point.</p>
+  </header>
+
+  <div class="callout"><strong>No card data.</strong> I found no reliable yellow-card numbers for this season's Eredivisie teams or referees, so I have not ranked any card markets. Corner and goal markets are covered instead. The PSV v Heerenveen game was played on Friday and is not included.</div>
+
+  <section class="board" aria-labelledby="top-h">
+    <div class="sec-title"><h2 id="top-h">Most likely events today</h2><span class="label">Across all four games</span></div>
+    <div class="ev cols label"><span>Event</span><span>My estimate</span><span style="text-align:right">Odds</span><span style="text-align:right">Against the price</span></div>
+    <div class="top-list" id="top"></div>
+    <div class="legend"><span class="l-fill">My estimated chance</span><span class="l-tick">Break-even chance at the quoted odds</span></div>
+  </section>
+
+  <section class="matches" id="matches" aria-label="Match analysis"></section>
+
+  <section class="notes" aria-labelledby="notes-h">
+    <div>
+      <h2 id="notes-h">How to read the numbers</h2>
+      <ul>
+        <li>The bar is my estimated chance. The black tick is the break-even chance at the odds (1 divided by the odds). If the bar ends before the tick, the price is shorter than my estimate.</li>
+        <li>"Close to fair" means my estimate is within 3 points of break-even. "Priced short" means it is lower. I found no event where the price clearly beats my estimate, because bookmaker prices include a margin.</li>
+        <li>Rows with no odds are estimates only. I could not check what a bookmaker would charge for them.</li>
+        <li>Estimates are rounded and rest on 7 games of data per team, so treat a gap of a few points as noise.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Method and limits</h2>
+      <ul>
+        <li>Goal events use each side's expected goals (from scoring and conceding rates this season and in the last 10 league games) and a standard goals model, then I blended in the market prices.</li>
+        <li>Corner estimates use each team's average total corners per game, which are noisy. Line-ups are not confirmed.</li>
+        <li>Sources disagree on some injuries and on Ajax's suspension (one list has Gaaei suspended, one lists him in the line-up). Check line-ups an hour before kick-off.</li>
+        <li>Combining several events into one bet multiplies the risk. Only stake money you can afford to lose, and be aware that no result is guaranteed.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Sources</h2>
+      <ul>
+        <li><a href="https://en.wikipedia.org/wiki/2026%E2%80%9327_Eredivisie">Wikipedia Eredivisie table</a> (updated 9 Oct)</li>
+        <li><a href="https://www.sportsgambler.com/betting-tips/football/feyenoord-vs-az-alkmaar-prediction-lineups-odds-2026-10-10/">SportsGambler Feyenoord v AZ</a>, <a href="https://www.sportsgambler.com/betting-tips/football/go-ahead-eagles-vs-sparta-rotterdam-prediction-lineups-odds-2026-10-10/">Go Ahead v Sparta</a>, <a href="https://www.sportsgambler.com/betting-tips/football/ajax-vs-nec-nijmegen-prediction-lineups-odds-2026-10-10/">Ajax v NEC</a>, <a href="https://www.sportsgambler.com/betting-tips/football/fortuna-sittard-vs-twente-prediction-lineups-odds-2026-10-10/">Fortuna v Twente</a> (stats and odds)</li>
+        <li><a href="https://www.sportsmole.co.uk/football/feyenoord/preview/feyenoord-vs-az-prediction-team-news-lineups_606504.html">Sports Mole Feyenoord v AZ</a>, <a href="https://www.sportsmole.co.uk/football/ajax/preview/ajax-vs-nijmegen-prediction-team-news-lineups_606506.html">Ajax v NEC</a>, <a href="https://www.sportsmole.co.uk/football/fortuna-sittard/preview/sittard-vs-fc-twente-prediction-team-news-lineups_606457.html">Fortuna v Twente</a>, <a href="https://www.sportsmole.co.uk/football/go-ahead-eagles/preview/go-ahead-eagles-vs-sparta-prediction-team-news-lineups_606436.html">Go Ahead v Sparta</a></li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+// p = my estimated chance (%), o = decimal odds seen (null if none)
+var MATCHES = [
+  {
+    ko: "16:30", home: "Go Ahead Eagles", away: "Sparta Rotterdam",
+    hPos: 9, aPos: 12, hRec: "2-4-1 · 10 pts · GF 16 GA 14", aRec: "1-2-4 · 5 pts · GF 10 GA 17",
+    score: [2, 1], p3: [54, 25, 21], pick: "Go Ahead win",
+    summary: "Eagles are at home with the fifth-best attack but no clean sheets all season. Sparta have lost their last two and conceded 2.6 a game away. Expect goals at both ends.",
+    team: "Eagles: Pim Saathof (cruciate ligament) is out, Eus Waayers is expected to miss out, and Mathis Suray is a doubt. Sparta: Shunsuke Mito has missed two games but is in the predicted XI.",
+    events: [
+      { n: "Over 1.5 goals", d: "Both sides concede two or more a game", p: 87, o: null },
+      { n: "Go Ahead Eagles to score", d: "Scored in all of their last 6 league games, 2.6 a game at home (last 10)", p: 86, o: null },
+      { n: "Go Ahead Eagles or draw", d: "Double chance", p: 79, o: 1.19 },
+      { n: "Over 8.5 corners", d: "Eagles average 11.6 corners a game, Sparta 12.3", p: 78, o: null },
+      { n: "Sparta to score", d: "Sparta scored in 5 of their last 6, but only 1.0 a game away (last 10)", p: 70, o: null },
+      { n: "Over 2.5 goals", d: "Over 2.5 in 8 of Eagles' last 10 and 9 of Sparta's", p: 68, o: 1.38 },
+      { n: "Both teams to score", d: "Eagles' games: BTTS in 10 of 10", p: 65, o: 1.40 },
+      { n: "Go Ahead Eagles win", d: "Draw no bet 1.29", p: 54, o: 1.70 }
+    ]
+  },
+  {
+    ko: "18:45", home: "Feyenoord", away: "AZ Alkmaar",
+    hPos: 3, aPos: 2, hRec: "5-2-0 · 17 pts · GF 25 GA 7", aRec: "6-1-0 · 19 pts · GF 18 GA 6",
+    score: [2, 1], p3: [53, 25, 22], pick: "Feyenoord win",
+    summary: "The best attack in the league (3.0 a game over the last 10) meets the leaders, unbeaten in 13. Feyenoord have not lost to AZ in nine meetings and are unbeaten at De Kuip in their last 10. Several Feyenoord players are out.",
+    team: "Feyenoord: Hadj Moussa, Nieuwkoop, Smal, Moder, Beelen, Watanabe and Bos are listed out, and Borges has a knock. AZ: Stije Resink is out until winter, and the sources list a few knocks (Goes, Boogaard, Kasius).",
+    events: [
+      { n: "Feyenoord to score", d: "Scored 25 in 7, 2.3 a game at home (last 10)", p: 88, o: null },
+      { n: "Over 1.5 goals", d: "Combined 3.9 goals a game for Feyenoord, 3.6 for AZ", p: 88, o: null },
+      { n: "Feyenoord or draw", d: "Double chance. Unbeaten in 16 league games", p: 78, o: 1.22 },
+      { n: "Over 8.5 corners", d: "Their games average 10.2 and 11.3 corners", p: 76, o: null },
+      { n: "AZ to score", d: "AZ scored in all of their last 6 league games", p: 71, o: null },
+      { n: "Over 2.5 goals", d: "Over 2.5 in 7 of Feyenoord's last 10", p: 68, o: 1.43 },
+      { n: "Both teams to score", d: "Feyenoord's home games: BTTS in 8 of 10", p: 66, o: 1.41 },
+      { n: "Feyenoord over 1.5 goals", d: "Team total", p: 62, o: null },
+      { n: "AZ over 4.5 corners", d: "AZ win 7.4 corners a game", p: 58, o: 1.77 }
+    ]
+  },
+  {
+    ko: "20:00", home: "Fortuna Sittard", away: "FC Twente",
+    hPos: 6, aPos: 4, hRec: "4-1-2 · 13 pts · GF 13 GA 14", aRec: "5-1-1 · 16 pts · GF 15 GA 7",
+    score: [1, 2], p3: [16, 20, 64], pick: "Twente win",
+    summary: "Twente have scored first in each of their last six games and have won the last four visits here. Fortuna's home games are open: BTTS in 9 of their last 10 at home. Twente also have European football coming up.",
+    team: "Fortuna: Yassin Oukili is out, and Sven Simons (hamstring) is listed. Twente: Stav Lemkin is the only reported absentee, and Kristian Hlynsson is back. Wout Weghorst has scored in five of his last six.",
+    events: [
+      { n: "Twente to score", d: "2.2 goals a game (last 10), scored first in the last 6", p: 85, o: null },
+      { n: "Twente or draw", d: "Double chance", p: 84, o: 1.12 },
+      { n: "Over 1.5 goals", d: "Over 2.5 in 7 of 10 for both sides", p: 82, o: null },
+      { n: "Twente to win most corners", d: "Twente win 7.3 corners a game, Fortuna 2.7", p: 77, o: 1.21 },
+      { n: "Over 8.5 corners", d: "Twente average 11.6 total, Fortuna 9.8", p: 74, o: null },
+      { n: "Over 2.5 goals", d: "Fortuna's home games: over 2.5 in 8 of 10", p: 70, o: 1.36 },
+      { n: "Fortuna to score", d: "Fortuna scored in 5 of their last 6, but Twente concede 1.4 a game", p: 67, o: null },
+      { n: "Twente win", d: "Draw no bet 1.16", p: 64, o: 1.43 },
+      { n: "Both teams to score", d: "Fortuna at home and Twente away: BTTS in 9 of 10 each", p: 62, o: 1.49 },
+      { n: "Wout Weghorst to score", d: "Anytime scorer", p: 53, o: 1.82 }
+    ]
+  },
+  {
+    ko: "21:00", home: "Ajax", away: "NEC Nijmegen",
+    hPos: 5, aPos: 11, hRec: "4-2-1 · 14 pts · GF 21 GA 9", aRec: "2-2-3 · 8 pts · GF 12 GA 13",
+    score: [2, 1], p3: [72, 16, 12], pick: "Ajax win",
+    summary: "Ajax score 2.8 a game and are heavy favourites, but they have not beaten NEC in their last three meetings and rarely keep clean sheets. NEC's away games produce goals (BTTS in 8 of 10).",
+    team: "Ajax: Dolberg (knee, likely out for the season), Blind and Berghuis are out, Caio Henrique is a doubt, and sources conflict on Gaaei's suspension. NEC: Mor, Crettaz, Fonville, Nuytinck and Sandler are out.",
+    events: [
+      { n: "Ajax to score", d: "2.8 goals a game (last 10), 21 in 7", p: 91, o: null },
+      { n: "Over 1.5 goals", d: "Ajax's games average 4.1 goals", p: 89, o: null },
+      { n: "Ajax or draw", d: "Double chance", p: 87, o: 1.07 },
+      { n: "Over 8.5 corners", d: "Ajax 10.2 and NEC 9.8 total corners a game", p: 76, o: null },
+      { n: "Ajax win", d: "Draw no bet 1.09", p: 72, o: 1.28 },
+      { n: "Over 2.5 goals", d: "Over 2.5 in 8 of Ajax's last 10 at home", p: 71, o: 1.32 },
+      { n: "NEC to score", d: "NEC scored 1.9 a game away (last 10)", p: 70, o: null },
+      { n: "Ajax over 1.5 goals", d: "Team total", p: 69, o: null },
+      { n: "Ajax to win most corners", d: "Ajax win 7.3 corners a game, NEC 6.3", p: 65, o: 1.43 },
+      { n: "Both teams to score", d: "NEC's games: BTTS in 9 of 10", p: 62, o: 1.57 }
+    ]
+  }
+];
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+
+function evRow(e, showMatch) {
+  var be = e.o ? 100 / e.o : null;
+  var chipCls = "none", chipTxt = "No odds";
+  if (be !== null) {
+    if (e.p - be >= -3) { chipCls = "fair"; chipTxt = "Close to fair"; }
+    else { chipCls = "short"; chipTxt = "Priced short"; }
+  }
+  return '<div class="ev">' +
+    '<span class="ev-name">' + esc(e.n) + '<small>' + (showMatch ? esc(e.match) + ' · ' : '') + esc(e.d) + '</small></span>' +
+    '<span class="meter"><span class="track"><span class="fill" style="width:' + e.p + '%"></span>' +
+      (be !== null ? '<span class="tick" style="left:' + be.toFixed(1) + '%" title="Break-even ' + be.toFixed(0) + '%"></span>' : '') +
+    '</span><span class="pct">' + e.p + '%</span></span>' +
+    '<span class="odds">' + (e.o ? e.o.toFixed(2) : '–') + '</span>' +
+    '<span class="chip ' + chipCls + '">' + chipTxt + '</span></div>';
+}
+
+var all = [];
+MATCHES.forEach(function (m) {
+  m.events.forEach(function (e) { all.push({ n: e.n, d: e.d, p: e.p, o: e.o, match: m.home + " v " + m.away }); });
+});
+all.sort(function (a, b) { return b.p - a.p; });
+document.getElementById("top").innerHTML = all.slice(0, 8).map(function (e) { return evRow(e, true); }).join("");
+
+document.getElementById("matches").innerHTML = MATCHES.map(function (m) {
+  return '<article class="match">' +
+    '<div class="match-head">' +
+      '<div class="card-top"><span class="label mono">' + m.ko + ' CEST</span><span class="label">My pick: ' + esc(m.pick) + '</span></div>' +
+      '<div class="teams">' +
+        '<div class="team home"><h3>' + esc(m.home) + '</h3><span class="meta mono">#' + m.hPos + ' · ' + esc(m.hRec) + '</span></div>' +
+        '<div class="big"><small>Predicted</small>' + m.score[0] + ' – ' + m.score[1] + '</div>' +
+        '<div class="team away"><h3>' + esc(m.away) + '</h3><span class="meta mono">#' + m.aPos + ' · ' + esc(m.aRec) + '</span></div>' +
+      '</div>' +
+      '<div><div class="bar" role="img" aria-label="Home ' + m.p3[0] + '%, draw ' + m.p3[1] + '%, away ' + m.p3[2] + '%">' +
+        '<div class="seg h" style="flex:' + m.p3[0] + '">' + m.p3[0] + '%</div>' +
+        '<div class="seg d" style="flex:' + m.p3[1] + '">' + m.p3[1] + '%</div>' +
+        '<div class="seg a" style="flex:' + m.p3[2] + '">' + m.p3[2] + '%</div></div>' +
+        '<div class="bar-key"><span>Home win</span><span>Draw</span><span>Away win</span></div></div>' +
+      '<p>' + esc(m.summary) + '</p>' +
+      '<p class="others">' + esc(m.team) + '</p>' +
+    '</div>' +
+    '<div class="ev cols label"><span>Event, most likely first</span><span>My estimate</span><span style="text-align:right">Odds</span><span style="text-align:right">Against the price</span></div>' +
+    m.events.map(function (e) { return evRow(e, false); }).join("") +
+    '</article>';
+}).join("");
+
+(function () {
+  var btn = document.getElementById("themeBtn");
+  btn.addEventListener("click", function () {
+    var root = document.documentElement;
+    var cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+})();
+</script>

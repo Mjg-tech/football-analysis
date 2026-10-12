@@ -1,0 +1,9 @@
+[
+  {"file":"2026-10-10-five-leagues-bets.html","date":"2026-10-10","title":"Five-League Bet Board","kind":"Bettable events","scope":"Premier League, Bundesliga, Ligue 1, La Liga, Serie A (24 matches)"},
+  {"file":"2026-10-10-eredivisie-bets.html","date":"2026-10-10","title":"Eredivisie Bet Board","kind":"Bettable events","scope":"Eredivisie (4 matches)"},
+  {"file":"2026-10-10-serie-a.html","date":"2026-10-10","title":"Serie A Matchday Board","kind":"Predictions","scope":"Serie A (3 matches)"},
+  {"file":"2026-10-10-la-liga.html","date":"2026-10-10","title":"La Liga Matchday Board","kind":"Predictions","scope":"La Liga (4 matches)"},
+  {"file":"2026-10-10-ligue-1.html","date":"2026-10-10","title":"Ligue 1 Matchday Board","kind":"Predictions","scope":"Ligue 1 (5 matches)"},
+  {"file":"2026-10-10-bundesliga.html","date":"2026-10-10","title":"Bundesliga Matchday Board","kind":"Predictions","scope":"Bundesliga (6 matches)"},
+  {"file":"2026-10-10-premier-league.html","date":"2026-10-10","title":"Premier League Matchday Board","kind":"Predictions","scope":"Premier League (6 matches)"}
+]

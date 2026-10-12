@@ -1,0 +1,253 @@
+<title>Serie A Matchday Board</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a fixture-board summary strip on top, then one detailed card per match, ordered by kick-off. */
+:root {
+  --bg: #EEF1F0;
+  --surface: #FFFFFF;
+  --surface-2: #E6E4DC;
+  --ink: #1A1A1F;
+  --ink-2: #57565E;
+  --line: #D2CFC4;
+  --accent: #0B6B7D;
+  --accent-ink: #FFFFFF;
+  --seg-h: #1F4E79;
+  --seg-d: #8A8A92;
+  --seg-a: #B9521A;
+  --seg-text: #FFFFFF;
+  --warn: #7A5200;
+  --warn-bg: #FBF0D5;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101618; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+    --line: #36363E; --accent: #6FD0E4; --accent-ink: #062A31;
+    --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+    --warn: #F0C46A; --warn-bg: #2E2410;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101618; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+  --line: #36363E; --accent: #6FD0E4; --accent-ink: #062A31;
+  --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+  --warn: #F0C46A; --warn-bg: #2E2410;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 28px 56px; }
+.wrap { max-width: 1060px; margin-inline: auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.05; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { font-size: clamp(38px, 8vw, 64px); letter-spacing: .005em; }
+.sub { color: var(--ink-2); max-width: 62ch; }
+
+.board { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.board-head h2 { font-size: 26px; }
+.row { display: grid; grid-template-columns: 64px minmax(0, 1.6fr) 96px minmax(0, 1fr) 96px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row.cols { padding-block: 8px; background: var(--surface-2); }
+.row .ko { font-family: var(--f-mono); font-size: 14px; }
+.row .fx { font-family: var(--f-display); font-weight: 600; font-size: 21px; line-height: 1.1; min-width: 0; }
+.row .fx span { color: var(--ink-2); font-weight: 600; font-size: 15px; padding-inline: 4px; }
+.score { font-family: var(--f-display); font-weight: 700; font-size: 30px; letter-spacing: .02em; text-align: center; background: var(--ink); color: var(--bg); border-radius: 6px; padding: 2px 0; }
+.pickcell { font-weight: 600; min-width: 0; }
+.conf { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; }
+.conf.high { color: var(--accent); }
+.conf.med { color: var(--seg-a); }
+.conf.low { color: var(--ink-2); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.team { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.team.away { text-align: right; align-items: flex-end; }
+.team h3 { font-size: 28px; overflow-wrap: anywhere; }
+.team .meta { font-size: 12.5px; color: var(--ink-2); }
+.big { font-family: var(--f-display); font-weight: 700; font-size: 44px; line-height: 1; text-align: center; white-space: nowrap; }
+.big small { display: block; font-family: var(--f-body); font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+.bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.seg { display: flex; align-items: center; justify-content: center; color: var(--seg-text); font-family: var(--f-mono); font-size: 13px; min-width: 0; }
+.seg.h { background: var(--seg-h); } .seg.d { background: var(--seg-d); } .seg.a { background: var(--seg-a); }
+.bar-key { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-2); margin-top: 5px; }
+.verdict { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.verdict .pill { background: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 4px 12px; border-radius: 99px; font-size: 14px; }
+ul.why { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.news { font-size: 13.5px; border-top: 1px dashed var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.news.unconfirmed { color: var(--ink-2); }
+.risk { font-size: 13.5px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 9px 12px; }
+.others { font-size: 13px; color: var(--ink-2); }
+
+.notes { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+.notes h2 { font-size: 24px; margin-bottom: 8px; }
+.notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.theme-btn { font: inherit; font-size: 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; cursor: pointer; }
+.top-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .row { grid-template-columns: 56px minmax(0, 1fr) 72px; grid-template-areas: "ko fx score" "ko pick conf"; row-gap: 6px; }
+  .row.cols { display: none; }
+  .row .ko { grid-area: ko; align-self: start; padding-top: 4px; }
+  .row .fx { grid-area: fx; }
+  .row .score { grid-area: score; }
+  .row .pickcell { grid-area: pick; font-size: 14px; }
+  .row .conf { grid-area: conf; }
+  .teams { grid-template-columns: 1fr 1fr; grid-template-areas: "h a" "s s"; }
+  .teams .big { grid-area: s; order: 3; }
+  .team.home { grid-area: h; } .team.away { grid-area: a; }
+}
+@media (prefers-reduced-motion: no-preference) { .seg { transition: flex-basis .3s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="top-line">
+      <span class="label">Saturday 10 October 2026 · Giornata 6 · Kick-offs in Italian time (CEST)</span>
+      <button class="theme-btn" id="themeBtn" type="button">Switch theme</button>
+    </div>
+    <h1>Serie A Matchday Board</h1>
+    <p class="sub">Three games today, each with a predicted score, win/draw/loss odds and the reasons behind the pick. The odds are my own estimates, built from the league table, recent results and published previews. They are not bookmaker prices. For UK time, subtract one hour from every kick-off.</p>
+  </header>
+
+  <section class="board" aria-labelledby="sum-h">
+    <div class="board-head">
+      <h2 id="sum-h">Today's picks</h2>
+      <span class="label">Sorted by kick-off</span>
+    </div>
+    <div class="row cols label"><span>CEST</span><span>Match</span><span style="text-align:center">Score</span><span>Pick</span><span style="text-align:center">Confidence</span></div>
+    <div id="summary"></div>
+  </section>
+
+  <section class="cards" id="cards" aria-label="Match breakdowns"></section>
+
+  <section class="notes" aria-labelledby="notes-h">
+    <div>
+      <h2 id="notes-h">How to read this</h2>
+      <ul>
+        <li>Odds bars read home / draw / away and always add up to 100%.</li>
+        <li>Confidence reflects how far apart the two sides look, not how likely the exact score is.</li>
+        <li>The table is the 20-team Serie A table after matchday 5 (20 September). Every team has played five games, and today starts matchday 6, so it is up to date. Five games is a small sample.</li>
+        <li>More games follow on Sunday and are not covered here.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>What I could not confirm</h2>
+      <ul>
+        <li>Confirmed line-ups. They come out about an hour before kick-off. Check them before relying on any pick.</li>
+        <li>Injury lists. Previews disagree on who is out for Inter, Napoli and Genoa, and the card says so where they do.</li>
+        <li>Coaches. Sources name different managers for several of these clubs, so I left coach names out.</li>
+        <li>Fiorentina's recent form. One source says they started with three straight wins, but the table shows one win from five, so I used the table.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Sources</h2>
+      <ul>
+        <li><a href="https://en.wikipedia.org/wiki/2026%E2%80%9327_Serie_A">Wikipedia Serie A table</a> (after 20 Sept)</li>
+        <li><a href="https://www.inter.it/en/news/serie-a-2026-27-calendar-first-half-of-season">Inter.it fixture times</a> and <a href="https://www.skysports.com/serie-a-scores-fixtures">Sky Sports fixtures</a></li>
+        <li><a href="https://www.dazn.com/en-US/news/soccer/inter-parma-preview-team-news-prediction-date/bwp0844qquqj1g51ouvm6b7mo">DAZN Inter v Parma</a></li>
+        <li><a href="https://www.thestatszone.com/napoli-vs-frosinone-preview-team-news-prediction-228365">Stats Zone Napoli v Frosinone</a> and <a href="https://www.thestatszone.com/genoa-vs-fiorentina-preview-team-news-prediction-228361">Genoa v Fiorentina</a></li>
+        <li><a href="https://footballwhispers.com/blog/genoa-vs-fiorentina-prediction-10-10-2026/">Football Whispers Genoa v Fiorentina</a></li>
+        <li><a href="https://tips.gg/article/napoli-vs-frosinone-10-10-2026/">Tips.gg Napoli v Frosinone</a></li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+var MATCHES = [
+  {
+    ko: "15:00", home: "Genoa", away: "Fiorentina",
+    hPos: 19, aPos: 17, hRec: "0-1-4 · 1 pt · GD -7", aRec: "1-1-3 · 4 pts · GD -6",
+    score: [1, 2], p: [28, 29, 43], pick: "Fiorentina win", conf: "low",
+    why: [
+      "Genoa have one point from five games and have scored only three goals. Their latest game was a 2-1 loss to Parma, and they have no wins in their last five home league games.",
+      "Fiorentina have not lost to Genoa in 11 league meetings, and have not lost in their last five league trips to the Ferraris (three wins, two draws).",
+      "Fiorentina drew 1-1 with Napoli in their last game and have four points, three more than Genoa, so I give them a small edge rather than a clear one."
+    ],
+    risk: "Both sides are in the bottom three or close to it, and Fiorentina have lost three of five. Genoa may be desperate for a first win, and a first-half draw has happened in three of the last five meetings.",
+    others: "Football Whispers tips Genoa 1-2 Fiorentina. WhoScored points to a 1-1 draw. Odds listed: Fiorentina 2.30, draw 3.25, Genoa 3.00.",
+    news: "Genoa: Meichtry, Colombo and Venturino are injured, and Djibril Sow was reportedly hurt on international duty. Fiorentina: Fabiano Parisi is out with a knee injury and Alieu Njie is a doubt with a thigh problem. Sources disagree on some names."
+  },
+  {
+    ko: "18:00", home: "Inter", away: "Parma",
+    hPos: 2, aPos: 15, hRec: "4-1-0 · 13 pts · GD +7", aRec: "1-1-3 · 4 pts · GD -3",
+    score: [3, 1], p: [78, 14, 8], pick: "Inter win", conf: "high",
+    why: [
+      "Inter are unbeaten (four wins, one draw, a 2-2 draw with Roma on 19 September) and score 3 goals a game, the most in the league, with the most shots on target (7.4 a game).",
+      "Parma have won once in five and score 0.8 goals a game, with the fewest shots on target (2.8) in Serie A. Their one win was over Genoa on 20 September.",
+      "Inter are at San Siro, where the gap in quality is largest."
+    ],
+    risk: "Inter have conceded 8 in five games and are missing several first-team players, so Parma can score. Teams often look unsettled right after an international break.",
+    others: "DAZN tips Inter 2-0 and KhelNow tips Inter 3-1. One model gives Inter 81%. Bookmakers have Inter at about 1.14, so most previews point to goals markets instead.",
+    news: "Inter: DAZN lists Djed Spence, Hakan Çalhanoğlu, John Stones and Federico Dimarco as out, but another preview calls Stones and Çalhanoğlu questionable. Parma: Hans Nicolussi Caviglia, Adrian Bernabé and Dominik Drobnić are out."
+  },
+  {
+    ko: "20:45", home: "Napoli", away: "Frosinone",
+    hPos: 9, aPos: 6, hRec: "2-1-2 · 7 pts · GD +1", aRec: "3-1-1 · 10 pts · GD +5",
+    score: [2, 1], p: [47, 27, 26], pick: "Napoli win", conf: "low",
+    why: [
+      "Napoli have the deeper squad and are at home, with a model giving them about 64%. Frosinone are newly promoted.",
+      "Frosinone have been strong, though: three wins and a draw from five, only 4 goals conceded and a 2-0 win over Como last time out.",
+      "Napoli's attack has been wasteful (32 shots in their last five games for two goals), so I expect a close game decided by one goal."
+    ],
+    risk: "Napoli have a long injury list and have won only two of five. Frosinone sit above them in the table and could take a point. Several previews expect both teams to score.",
+    others: "Forebet tips a 2-2 draw, Tips.gg a narrow Napoli win and Sportytrader backs both teams to score.",
+    news: "Napoli: Buongiorno and Favasuli are out. Doubts listed include Meret, Spinazzola, Anguissa, McTominay (illness), Alisson Santos, Giovane and Olivera, and sources differ on who is available. Frosinone: Grillitsch is out and Raimondo (heel) is a doubt."
+  }
+];
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+var CONF = { high: "High", med: "Medium", low: "Low" };
+
+document.getElementById("summary").innerHTML = MATCHES.map(function (m) {
+  return '<div class="row">' +
+    '<span class="ko">' + m.ko + '</span>' +
+    '<span class="fx">' + esc(m.home) + '<span>v</span>' + esc(m.away) + '</span>' +
+    '<span class="score">' + m.score[0] + ' – ' + m.score[1] + '</span>' +
+    '<span class="pickcell">' + esc(m.pick) + '</span>' +
+    '<span class="conf ' + m.conf + '">' + CONF[m.conf] + '</span></div>';
+}).join("");
+
+document.getElementById("cards").innerHTML = MATCHES.map(function (m) {
+  var news = m.news
+    ? '<div class="news"><span class="label">Team news</span><span>' + esc(m.news) + '</span></div>'
+    : '<div class="news unconfirmed"><span class="label">Team news</span><span>No current injury or suspension report found. Check line-ups an hour before kick-off.</span></div>';
+  return '<article class="card">' +
+    '<div class="card-top"><span class="label mono">' + m.ko + ' CEST</span><span class="conf ' + m.conf + '">' + CONF[m.conf] + ' confidence</span></div>' +
+    '<div class="teams">' +
+      '<div class="team home"><h3>' + esc(m.home) + '</h3><span class="meta mono">#' + m.hPos + ' · ' + esc(m.hRec) + '</span></div>' +
+      '<div class="big"><small>Predicted</small>' + m.score[0] + ' – ' + m.score[1] + '</div>' +
+      '<div class="team away"><h3>' + esc(m.away) + '</h3><span class="meta mono">#' + m.aPos + ' · ' + esc(m.aRec) + '</span></div>' +
+    '</div>' +
+    '<div><div class="bar" role="img" aria-label="Home ' + m.p[0] + '%, draw ' + m.p[1] + '%, away ' + m.p[2] + '%">' +
+      '<div class="seg h" style="flex:' + m.p[0] + '">' + m.p[0] + '%</div>' +
+      '<div class="seg d" style="flex:' + m.p[1] + '">' + m.p[1] + '%</div>' +
+      '<div class="seg a" style="flex:' + m.p[2] + '">' + m.p[2] + '%</div></div>' +
+      '<div class="bar-key"><span>Home win</span><span>Draw</span><span>Away win</span></div></div>' +
+    '<div class="verdict"><span class="label">My pick</span><span class="pill">' + esc(m.pick) + '</span></div>' +
+    '<ul class="why">' + m.why.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join("") + '</ul>' +
+    '<p class="risk"><strong>Main risk.</strong> ' + esc(m.risk) + '</p>' +
+    '<p class="others">' + esc(m.others) + '</p>' + news +
+    '</article>';
+}).join("");
+
+(function () {
+  var btn = document.getElementById("themeBtn");
+  btn.addEventListener("click", function () {
+    var root = document.documentElement;
+    var cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+})();
+</script>
