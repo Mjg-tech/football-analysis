@@ -13,6 +13,10 @@
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 "Barlow",system-ui,sans-serif}
 .top{padding:20px 16px 12px;max-width:1100px;margin:0 auto}
 h1{font:700 30px/1.1 "Barlow Condensed",system-ui,sans-serif;letter-spacing:.02em;text-transform:uppercase;margin:0 0 4px;text-wrap:balance}
+.toprow{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.lang{display:flex;border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.lang button{font:600 12px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;background:var(--panel);color:var(--fg);border:0;padding:8px 14px;cursor:pointer}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
 .sub{color:var(--mute);margin:0;max-width:65ch}
 .layout{max-width:1100px;margin:0 auto;padding:8px 16px 40px;display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;align-items:start}
 @media(max-width:800px){.layout{grid-template-columns:minmax(0,1fr)}}
@@ -36,55 +40,86 @@ iframe{width:100%;border:1px solid var(--line);border-radius:8px;background:#fff
 </head>
 <body>
 <header class="top">
-  <h1>Football analysis archive</h1>
-  <p class="sub">Every analysis lives on this one page. The newest opens first; earlier ones stay in the history list and are never overwritten.</p>
+  <div class="toprow">
+    <h1 id="h1">Football analysis archive</h1>
+    <div class="lang" role="group" aria-label="Language / Langue"><button type="button" data-lang="en">EN</button><button type="button" data-lang="fr">FR</button></div>
+  </div>
+  <p class="sub" id="sub">Every analysis lives on this one page. The newest opens first; earlier ones stay in the history list and are never overwritten.</p>
 </header>
 <main class="layout">
-  <nav class="hist" aria-label="History"><h2>History</h2><div id="list"></div></nav>
+  <nav class="hist" aria-label="History"><h2 id="histh">History</h2><div id="list"></div></nav>
   <section class="view">
     <div class="bar"><span id="meta"></span><a id="raw" target="_blank" rel="noopener">Open on its own page</a></div>
     <iframe id="frame" title="Selected analysis"></iframe>
   </section>
 </main>
-<p class="note">Estimates built from bookmaker odds and recent form, not betting advice. Odds, line-ups and injuries change; each analysis is a snapshot of the date shown and is not updated afterwards.</p>
+<p class="note" id="note">Estimates built from bookmaker odds and recent form, not betting advice. Odds, line-ups and injuries change; each analysis is a snapshot of the date shown and is not updated afterwards.</p>
 <script>
 (function(){
   var list=document.getElementById('list'),frame=document.getElementById('frame'),meta=document.getElementById('meta'),raw=document.getElementById('raw');
-  var items=[];
+  var T={
+    en:{h1:'Football analysis archive',sub:'Every analysis lives on this one page. The newest opens first; earlier ones stay in the history list and are never overwritten.',hist:'History',raw:'Open on its own page',latest:'Latest',frame:'Selected analysis',fail:'Could not load the history list.',note:'Estimates built from bookmaker odds and recent form, not betting advice. Odds, line-ups and injuries change; each analysis is a snapshot of the date shown and is not updated afterwards.',loc:'en-GB'},
+    fr:{h1:'Archive des analyses de football',sub:'Toutes les analyses sont sur cette page. La plus récente s’ouvre en premier ; les précédentes restent dans l’historique et ne sont jamais écrasées.',hist:'Historique',raw:'Ouvrir sur sa propre page',latest:'Dernière',frame:'Analyse sélectionnée',fail:'Impossible de charger l’historique.',note:'Estimations fondées sur les cotes des bookmakers et la forme récente, pas des conseils de paris. Les cotes, compositions et blessures changent ; chaque analyse est un instantané de la date indiquée et n’est pas mise à jour ensuite.',loc:'fr-FR'}
+  };
+  var lang='en',items=[],cur=0;
+  try{var sv=localStorage.getItem('fa-lang');if(sv==='fr'||sv==='en')lang=sv}catch(e){}
+  var hs=location.hash.slice(1);
+  if(hs.indexOf('fr/')===0)lang='fr';else if(hs.indexOf('en/')===0)lang='en';
   function stem(f){return f.replace(/\.html$/,'')}
-  function fmt(d){var p=d.split('-');return new Date(Date.UTC(p[0],p[1]-1,p[2])).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'})}
+  function fmt(d){var p=d.split('-');return new Date(Date.UTC(p[0],p[1]-1,p[2])).toLocaleDateString(T[lang].loc,{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'UTC'})}
+  function f(a,k){return (lang==='fr'&&a[k+'_fr'])||a[k]}
+  function path(a){return 'analyses/'+(lang==='fr'?'fr/':'')+a.file}
   function fit(){try{var d=frame.contentDocument;if(d&&d.documentElement)frame.style.height=Math.max(d.documentElement.scrollHeight,d.body.scrollHeight)+'px'}catch(e){}}
   frame.addEventListener('load',function(){
     fit();
     try{var d=frame.contentDocument;if(window.ResizeObserver)new ResizeObserver(fit).observe(d.body);d.addEventListener('click',function(){setTimeout(fit,50)})}catch(e){}
   });
   window.addEventListener('resize',fit);
-  function open(i,push){
-    var a=items[i];if(!a)return;
-    frame.style.height='';frame.src='analyses/'+a.file;
-    meta.textContent=fmt(a.date)+' · '+a.scope;
-    raw.href='analyses/'+a.file;
-    [].forEach.call(list.querySelectorAll('.item'),function(b,j){if(j===i)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current')});
-    document.title=a.title+' – Football Analysis Archive';
-    if(push)try{history.replaceState(null,'','#'+stem(a.file))}catch(e){}
+  function chrome(){
+    var t=T[lang];
+    document.documentElement.lang=lang;
+    document.getElementById('h1').textContent=t.h1;document.getElementById('sub').textContent=t.sub;
+    document.getElementById('histh').textContent=t.hist;document.getElementById('note').textContent=t.note;
+    raw.textContent=t.raw;frame.title=t.frame;
+    [].forEach.call(document.querySelectorAll('.lang button'),function(b){b.setAttribute('aria-pressed',b.getAttribute('data-lang')===lang?'true':'false')});
   }
-  fetch('analyses.json').then(function(r){return r.json()}).then(function(data){
-    items=data.slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:0});
-    var last='';
+  function renderList(){
+    list.textContent='';var last='';
     items.forEach(function(a,i){
       if(a.date!==last){var h=document.createElement('div');h.className='day';h.textContent=fmt(a.date);list.appendChild(h);last=a.date}
       var b=document.createElement('button');b.className='item';b.type='button';
       b.innerHTML='<b></b><small></small>';
-      b.firstChild.textContent=a.title;
-      if(i===0){var t=document.createElement('span');t.className='tag';t.textContent='Latest';b.firstChild.appendChild(t)}
-      b.lastChild.textContent=a.kind+' · '+a.scope;
+      b.firstChild.textContent=f(a,'title');
+      if(i===0){var tg=document.createElement('span');tg.className='tag';tg.textContent=T[lang].latest;b.firstChild.appendChild(tg)}
+      b.lastChild.textContent=f(a,'kind')+' · '+f(a,'scope');
+      if(i===cur)b.setAttribute('aria-current','true');
       b.addEventListener('click',function(){open(i,true)});
       list.appendChild(b);
     });
-    var want=location.hash.slice(1),idx=0;
-    items.forEach(function(a,i){if(stem(a.file)===want)idx=i});
-    open(idx,false);
-  }).catch(function(){list.textContent='Could not load the history list.'});
+  }
+  function open(i,push){
+    var a=items[i];if(!a)return;cur=i;
+    frame.style.height='';frame.src=path(a);
+    meta.textContent=fmt(a.date)+' · '+f(a,'scope');
+    raw.href=path(a);
+    [].forEach.call(list.querySelectorAll('.item'),function(b,j){if(j===i)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current')});
+    document.title=f(a,'title')+' – '+T[lang].h1;
+    if(push)try{history.replaceState(null,'','#'+lang+'/'+stem(a.file))}catch(e){}
+  }
+  [].forEach.call(document.querySelectorAll('.lang button'),function(b){
+    b.addEventListener('click',function(){
+      lang=b.getAttribute('data-lang');
+      try{localStorage.setItem('fa-lang',lang)}catch(e){}
+      chrome();renderList();open(cur,true);
+    });
+  });
+  chrome();
+  fetch('analyses.json').then(function(r){return r.json()}).then(function(data){
+    items=data.slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:0});
+    var want=hs.replace(/^(fr|en)\//,'');
+    items.forEach(function(a,i){if(stem(a.file)===want)cur=i});
+    renderList();open(cur,false);
+  }).catch(function(){list.textContent=T[lang].fail});
 })();
 </script>
 </body>

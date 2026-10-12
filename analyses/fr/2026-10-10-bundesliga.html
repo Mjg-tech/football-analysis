@@ -1,0 +1,291 @@
+<title>Tableau de la journée : Bundesliga</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a fixture-board summary strip on top, then one detailed card per match, ordered by kick-off. */
+:root {
+  --bg: #F0EFEA;
+  --surface: #FFFFFF;
+  --surface-2: #E6E4DC;
+  --ink: #1A1A1F;
+  --ink-2: #57565E;
+  --line: #D2CFC4;
+  --accent: #B3261E;
+  --accent-ink: #FFFFFF;
+  --seg-h: #1F4E79;
+  --seg-d: #8A8A92;
+  --seg-a: #B9521A;
+  --seg-text: #FFFFFF;
+  --warn: #7A5200;
+  --warn-bg: #FBF0D5;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131316; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+    --line: #36363E; --accent: #FF7A70; --accent-ink: #2A0906;
+    --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+    --warn: #F0C46A; --warn-bg: #2E2410;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131316; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+  --line: #36363E; --accent: #FF7A70; --accent-ink: #2A0906;
+  --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+  --warn: #F0C46A; --warn-bg: #2E2410;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 28px 56px; }
+.wrap { max-width: 1060px; margin-inline: auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.05; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { font-size: clamp(38px, 8vw, 64px); letter-spacing: .005em; }
+.sub { color: var(--ink-2); max-width: 62ch; }
+
+.board { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.board-head h2 { font-size: 26px; }
+.row { display: grid; grid-template-columns: 64px minmax(0, 1.6fr) 96px minmax(0, 1fr) 96px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row.cols { padding-block: 8px; background: var(--surface-2); }
+.row .ko { font-family: var(--f-mono); font-size: 14px; }
+.row .fx { font-family: var(--f-display); font-weight: 600; font-size: 21px; line-height: 1.1; min-width: 0; }
+.row .fx span { color: var(--ink-2); font-weight: 600; font-size: 15px; padding-inline: 4px; }
+.score { font-family: var(--f-display); font-weight: 700; font-size: 30px; letter-spacing: .02em; text-align: center; background: var(--ink); color: var(--bg); border-radius: 6px; padding: 2px 0; }
+.pickcell { font-weight: 600; min-width: 0; }
+.conf { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; }
+.conf.high { color: var(--accent); }
+.conf.med { color: var(--seg-a); }
+.conf.low { color: var(--ink-2); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.team { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.team.away { text-align: right; align-items: flex-end; }
+.team h3 { font-size: 28px; overflow-wrap: anywhere; }
+.team .meta { font-size: 12.5px; color: var(--ink-2); }
+.big { font-family: var(--f-display); font-weight: 700; font-size: 44px; line-height: 1; text-align: center; white-space: nowrap; }
+.big small { display: block; font-family: var(--f-body); font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+.bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.seg { display: flex; align-items: center; justify-content: center; color: var(--seg-text); font-family: var(--f-mono); font-size: 13px; min-width: 0; }
+.seg.h { background: var(--seg-h); } .seg.d { background: var(--seg-d); } .seg.a { background: var(--seg-a); }
+.bar-key { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-2); margin-top: 5px; }
+.verdict { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.verdict .pill { background: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 4px 12px; border-radius: 99px; font-size: 14px; }
+ul.why { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.news { font-size: 13.5px; border-top: 1px dashed var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.news.unconfirmed { color: var(--ink-2); }
+.risk { font-size: 13.5px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 9px 12px; }
+.others { font-size: 13px; color: var(--ink-2); }
+
+.notes { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+.notes h2 { font-size: 24px; margin-bottom: 8px; }
+.notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.theme-btn { font: inherit; font-size: 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; cursor: pointer; }
+.top-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .row { grid-template-columns: 56px minmax(0, 1fr) 72px; grid-template-areas: "ko fx score" "ko pick conf"; row-gap: 6px; }
+  .row.cols { display: none; }
+  .row .ko { grid-area: ko; align-self: start; padding-top: 4px; }
+  .row .fx { grid-area: fx; }
+  .row .score { grid-area: score; }
+  .row .pickcell { grid-area: pick; font-size: 14px; }
+  .row .conf { grid-area: conf; }
+  .teams { grid-template-columns: 1fr 1fr; grid-template-areas: "h a" "s s"; }
+  .teams .big { grid-area: s; order: 3; }
+  .team.home { grid-area: h; } .team.away { grid-area: a; }
+}
+@media (prefers-reduced-motion: no-preference) { .seg { transition: flex-basis .3s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="top-line">
+      <span class="label">Samedi 10 octobre 2026 · 5e journée · Heures de coup d'envoi en Allemagne (CEST)</span>
+      <button class="theme-btn" id="themeBtn" type="button">Changer de thème</button>
+    </div>
+    <h1>Tableau de la journée : Bundesliga</h1>
+    <p class="sub">Six matchs aujourd'hui, chacun avec un score prévu, des probabilités victoire/nul/défaite et les raisons du choix. Les probabilités sont mes propres estimations, construites à partir du classement, des résultats récents et des avant-matchs publiés. Ce ne sont pas des cotes de bookmakers. Pour l'heure du Royaume-Uni, retranchez une heure à chaque coup d'envoi.</p>
+  </header>
+
+  <section class="board" aria-labelledby="sum-h">
+    <div class="board-head">
+      <h2 id="sum-h">Les choix du jour</h2>
+      <span class="label">Classés par heure de coup d'envoi</span>
+    </div>
+    <div class="row cols label"><span>CEST</span><span>Match</span><span style="text-align:center">Score</span><span>Choix</span><span style="text-align:center">Confiance</span></div>
+    <div id="summary"></div>
+  </section>
+
+  <section class="cards" id="cards" aria-label="Détail des matchs"></section>
+
+  <section class="notes" aria-labelledby="notes-h">
+    <div>
+      <h2 id="notes-h">Comment lire ce tableau</h2>
+      <ul>
+        <li>Les barres de probabilité se lisent domicile / nul / extérieur et totalisent toujours 100 %.</li>
+        <li>La confiance reflète l'écart entre les deux équipes, pas la probabilité du score exact. Aucun match du jour ne mérite une confiance élevée, car chaque équipe n'a joué que quatre ou cinq matchs.</li>
+        <li>Les places au classement viennent du tableau de Bundesliga à 18 équipes après le match de vendredi Dortmund - Brême.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Ce que je n'ai pas pu confirmer</h2>
+      <ul>
+        <li>Les compositions confirmées. Elles sortent environ une heure avant le coup d'envoi. Vérifiez-les avant de vous fier à un choix.</li>
+        <li>Les listes de blessés complètes. Je n'ai trouvé que des informations d'équipe partielles, et aucune pour Augsbourg, Hoffenheim, Hambourg, Elversberg, Paderborn, Leipzig ou Francfort.</li>
+        <li>La forme sur les cinq derniers matchs. Les équipes n'en ont joué que quatre : j'utilise donc les bilans de la saison et les résultats cités dans les avant-matchs.</li>
+        <li>Deux avant-matchs se contredisent sur les derniers résultats de Leipzig (l'un dit qu'ils ont perdu trois de leurs quatre derniers, le classement montre deux défaites sur quatre) : je n'ai donc pas retenu cette affirmation.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Sources</h2>
+      <ul>
+        <li><a href="https://en.wikipedia.org/wiki/2026%E2%80%9327_Bundesliga">Classement de Bundesliga sur Wikipédia</a> (mis à jour après le 9 oct.)</li>
+        <li><a href="https://www.bundesliga.com/en/bundesliga/news/confirmed-kick-off-times-dates-2026-27-fixtures-23955">Horaires des matchs sur Bundesliga.com</a></li>
+        <li><a href="https://www.livescore.com/en/news/football/bundesliga/predictions/bundesliga-predictions-all-nine-week-five-games-oct-9th-to-11th-2026/">Pronostics LiveScore, 5e journée</a></li>
+        <li><a href="https://www.vegasodds.com/blog/bundesliga-gamewek-5-odds/">Choix VegasOdds, 5e journée</a></li>
+        <li><a href="https://www.kickoff.co.uk/german-bundesliga-predictions-stats-odds/fc-union-berlin-vs-elversberg/">Modèle Kickoff Union - Elversberg</a></li>
+        <li><a href="https://bulinews.com/predicted-bundesliga-lineups-matchday-5-starting-xis">Titres d'infos d'équipe Bulinews</a></li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+var MATCHES = [
+  {
+    ko: "15:30", home: "Hoffenheim", away: "Hamburger SV",
+    hPos: 14, aPos: 16, hRec: "1-0-3 · 3 pts · diff. -3", aRec: "1-0-3 · 3 pts · diff. -11",
+    score: [2, 1], p: [52, 24, 24], pick: "Victoire d'Hoffenheim", conf: "med",
+    why: [
+      "Hambourg a marqué 2 buts et en a encaissé 13 en quatre matchs, dont 3-0 à Dortmund et 5-0 à Leipzig : son bilan à l'extérieur est le plus faible de cette affiche.",
+      "Hoffenheim a battu Stuttgart 2-1 à domicile et a pris six points lors des deux confrontations avec Hambourg la saison dernière, dont une victoire 4-1.",
+      "Les deux équipes ont perdu trois de leurs quatre matchs : je donne donc à Hambourg une vraie chance de marquer plutôt qu'un clean sheet pour Hoffenheim."
+    ],
+    risk: "Hoffenheim a encaissé 10 buts en quatre matchs et n'est pas très loin de Hambourg au classement : un 2-2 brouillon ou une victoire de Hambourg est possible.",
+    others: "LiveScore pronostique Hoffenheim 2-1 et VegasOdds choisit Hoffenheim.",
+    news: null
+  },
+  {
+    ko: "15:30", home: "FC Augsburg", away: "Bayern Munich",
+    hPos: 5, aPos: 2, hRec: "2-1-1 · 7 pts · diff. +5", aRec: "3-1-0 · 10 pts · diff. +12",
+    score: [2, 3], p: [21, 21, 58], pick: "Victoire du Bayern", conf: "med",
+    why: [
+      "Le Bayern a marqué 14 buts et en a encaissé 2 en quatre matchs, dont une victoire 7-0 contre l'Union Berlin. Harry Kane a marqué six fois avec l'Angleterre pendant la trêve internationale.",
+      "Augsbourg n'est pas un faire-valoir : 11 buts en quatre matchs, et une victoire contre le Bayern à Munich en janvier. Un avant-match note qu'ils sont la seule équipe à avoir battu le Bayern lors des 47 derniers matchs de Bundesliga.",
+      "Les deux équipes marquent facilement : j'attends donc d'Augsbourg un ou deux buts, et du Bayern plus de qualité."
+    ],
+    risk: "Le bilan récent d'Augsbourg contre le Bayern est la principale raison pour laquelle la confiance n'est pas plus haute. Le Bayern revient aussi de la trêve internationale.",
+    others: "LiveScore pronostique 2-3 pour le Bayern. VegasOdds mise sur les deux équipes qui marquent et plus de 3,5 buts plutôt que sur un vainqueur.",
+    news: "Les titres de Bundesliga.com disent que l'entraîneur du Bayern envisage une rotation, et un ancien joueur a qualifié la blessure de Serge Gnabry de coup « amer », sans donner de durée. Rien trouvé pour Augsbourg."
+  },
+  {
+    ko: "15:30", home: "Mainz 05", away: "Bayer Leverkusen",
+    hPos: 7, aPos: 6, hRec: "2-1-1 · 7 pts · diff. +4", aRec: "2-1-1 · 7 pts · diff. +5",
+    score: [2, 2], p: [33, 28, 39], pick: "Nul ou Leverkusen", conf: "low",
+    why: [
+      "Les deux équipes tournent autour de 2,5 buts par match, et huit des neuf derniers matchs de Leverkusen ont compté trois buts ou plus.",
+      "Mayence a été solide à l'extérieur mais n'a pas encore gagné à domicile. Leverkusen a gagné tous ses matchs à domicile mais a perdu 3-2 à Elversberg et fait 2-2 à Augsbourg.",
+      "Les équipes sont à égalité avec 7 points : je penche pour les visiteurs grâce à la différence de buts et à la profondeur offensive, le nul n'étant pas loin."
+    ],
+    risk: "Un match à pile ou face. La forme de Leverkusen à l'extérieur est plus fragile qu'à domicile, et Mayence a montré qu'il sait marquer.",
+    others: "LiveScore pronostique 2-2 et VegasOdds mise sur les deux équipes qui marquent.",
+    news: "Les titres de Bundesliga.com disent que trois joueurs de Mayence ont repris l'entraînement (noms non donnés). Pour Leverkusen, la disponibilité de Maza se décidera au dernier moment et un attaquant a connu une rechute (non nommé)."
+  },
+  {
+    ko: "15:30", home: "Union Berlin", away: "SV Elversberg",
+    hPos: 17, aPos: 8, hRec: "0-1-3 · 1 pt · diff. -13", aRec: "2-1-1 · 7 pts · diff. +1",
+    score: [1, 2], p: [30, 26, 44], pick: "Victoire d'Elversberg", conf: "low",
+    why: [
+      "L'Union a un point en quatre matchs, a perdu trois fois d'affilée et a encaissé 17 buts, le plus du championnat (dont 7-0 contre le Bayern).",
+      "Elversberg n'a perdu qu'une fois depuis sa promotion, 2-1 contre le Bayern, et a battu Leverkusen 3-2.",
+      "J'attends des buts des deux côtés, car Elversberg en a aussi encaissé 7 en quatre matchs."
+    ],
+    risk: "Les modèles se contredisent ici : un algorithme favorise légèrement l'Union (environ 41 %), alors qu'un vote communautaire favorise Elversberg (46 %). Les équipes à domicile en crise se reprennent parfois.",
+    others: "LiveScore pronostique Elversberg 2-1. Un modèle Kickoff donne l'Union 41 %, nul 23 %, Elversberg 36 %, avec 1-1 comme score le plus probable.",
+    news: "LiveScore signale des problèmes de blessures dans la défense de l'Union. Une liste Starting11 donne Zimmerschied (dos) et Seifert (cheville) absents et Onyeka incertain, mais ce n'est pas vérifié et ce n'est pas une feuille de match confirmée."
+  },
+  {
+    ko: "15:30", home: "SC Paderborn", away: "VfB Stuttgart",
+    hPos: 12, aPos: 15, hRec: "1-1-2 · 4 pts · diff. -2", aRec: "1-0-3 · 3 pts · diff. -3",
+    score: [0, 1], p: [26, 28, 46], pick: "Victoire de Stuttgart", conf: "low",
+    why: [
+      "Paderborn n'a marqué que 3 buts en quatre matchs et n'a pas marqué lors de trois d'entre eux.",
+      "Stuttgart a perdu de peu contre Hoffenheim (2-1) et Dortmund (1-0) et a la qualité pour rebondir, mais a aussi perdu trois de ses quatre matchs.",
+      "Un match à faible score convient aux deux équipes. Je donne l'avantage à Stuttgart car l'attaque de Paderborn est la plus faible."
+    ],
+    risk: "Stuttgart a perdu trois de ses quatre matchs et encaissé 9 buts : un nul est presque aussi probable qu'une victoire de Stuttgart.",
+    others: "LiveScore pronostique Stuttgart 2-0 et VegasOdds choisit Stuttgart.",
+    news: "Les titres de Bundesliga.com disent que Stuttgart a tranché pour son gardien pour le déplacement (non nommé). Aucune information de blessure trouvée pour Paderborn."
+  },
+  {
+    ko: "18:30", home: "RB Leipzig", away: "Eintracht Frankfurt",
+    hPos: 9, aPos: 10, hRec: "2-0-2 · 6 pts · diff. +4", aRec: "1-2-1 · 5 pts · diff. -1",
+    score: [2, 1], p: [50, 25, 25], pick: "Victoire de Leipzig", conf: "med",
+    why: [
+      "Leipzig a marqué 9 buts et en a encaissé 5 en quatre matchs, dont une victoire 5-0 contre Hambourg, et joue à domicile.",
+      "Francfort a encaissé 10 buts en quatre matchs, dont un 3-3 contre l'Union Berlin : sa défense est la principale inquiétude.",
+      "Les deux équipes aiment les transitions rapides : j'attends donc des buts, et la meilleure différence de buts de l'équipe à domicile devrait peser."
+    ],
+    risk: "Leipzig a perdu deux de ses quatre matchs et un avant-match dit que l'entraîneur est sous pression. VegasOdds qualifie ce match de proche du 50-50.",
+    others: "LiveScore pronostique Leipzig 3-1. VegasOdds mise sur les deux équipes qui marquent et plus de 2,5 buts.",
+    news: null
+  }
+];
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+var CONF = { high: "Élevée", med: "Moyenne", low: "Faible" };
+
+document.getElementById("summary").innerHTML = MATCHES.map(function (m) {
+  return '<div class="row">' +
+    '<span class="ko">' + m.ko + '</span>' +
+    '<span class="fx">' + esc(m.home) + '<span>–</span>' + esc(m.away) + '</span>' +
+    '<span class="score">' + m.score[0] + ' – ' + m.score[1] + '</span>' +
+    '<span class="pickcell">' + esc(m.pick) + '</span>' +
+    '<span class="conf ' + m.conf + '">' + CONF[m.conf] + '</span></div>';
+}).join("");
+
+document.getElementById("cards").innerHTML = MATCHES.map(function (m) {
+  var news = m.news
+    ? '<div class="news"><span class="label">Infos d’équipe</span><span>' + esc(m.news) + '</span></div>'
+    : '<div class="news unconfirmed"><span class="label">Infos d’équipe</span><span>Aucun rapport récent de blessure ou de suspension trouvé. Vérifiez les compositions une heure avant le coup d’envoi.</span></div>';
+  return '<article class="card">' +
+    '<div class="card-top"><span class="label mono">' + m.ko + ' CEST</span><span class="conf ' + m.conf + '">' + CONF[m.conf] + ' de confiance</span></div>' +
+    '<div class="teams">' +
+      '<div class="team home"><h3>' + esc(m.home) + '</h3><span class="meta mono">#' + m.hPos + ' · ' + esc(m.hRec) + '</span></div>' +
+      '<div class="big"><small>Score prévu</small>' + m.score[0] + ' – ' + m.score[1] + '</div>' +
+      '<div class="team away"><h3>' + esc(m.away) + '</h3><span class="meta mono">#' + m.aPos + ' · ' + esc(m.aRec) + '</span></div>' +
+    '</div>' +
+    '<div><div class="bar" role="img" aria-label="Domicile ' + m.p[0] + '%, nul ' + m.p[1] + '%, extérieur ' + m.p[2] + '%">' +
+      '<div class="seg h" style="flex:' + m.p[0] + '">' + m.p[0] + '%</div>' +
+      '<div class="seg d" style="flex:' + m.p[1] + '">' + m.p[1] + '%</div>' +
+      '<div class="seg a" style="flex:' + m.p[2] + '">' + m.p[2] + '%</div></div>' +
+      '<div class="bar-key"><span>Victoire dom.</span><span>Nul</span><span>Victoire ext.</span></div></div>' +
+    '<div class="verdict"><span class="label">Mon choix</span><span class="pill">' + esc(m.pick) + '</span></div>' +
+    '<ul class="why">' + m.why.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join("") + '</ul>' +
+    '<p class="risk"><strong>Risque principal.</strong> ' + esc(m.risk) + '</p>' +
+    '<p class="others">' + esc(m.others) + '</p>' + news +
+    '</article>';
+}).join("");
+
+(function () {
+  var btn = document.getElementById("themeBtn");
+  btn.addEventListener("click", function () {
+    var root = document.documentElement;
+    var cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+})();
+</script>

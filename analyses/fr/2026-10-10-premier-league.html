@@ -1,0 +1,295 @@
+<title>Tableau de la journée : Premier League</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a fixture-board summary strip on top, then one detailed card per match, ordered by kick-off. */
+:root {
+  --bg: #EDF0F3;
+  --surface: #FFFFFF;
+  --surface-2: #E3E8EE;
+  --ink: #0E1B2C;
+  --ink-2: #4A5A6E;
+  --line: #CBD3DD;
+  --accent: #1E6B4B;
+  --accent-ink: #FFFFFF;
+  --seg-h: #1F4E79;
+  --seg-d: #8995A3;
+  --seg-a: #B9521A;
+  --seg-text: #FFFFFF;
+  --warn: #8A5A00;
+  --warn-bg: #FBF0D5;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0C1520; --surface: #142131; --surface-2: #1C2D41; --ink: #E8EEF5; --ink-2: #9FB0C4;
+    --line: #2A3B52; --accent: #5FC495; --accent-ink: #08241A;
+    --seg-h: #4C86BE; --seg-d: #66758A; --seg-a: #E0803F; --seg-text: #0B1420;
+    --warn: #F0C46A; --warn-bg: #2E2410;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0C1520; --surface: #142131; --surface-2: #1C2D41; --ink: #E8EEF5; --ink-2: #9FB0C4;
+  --line: #2A3B52; --accent: #5FC495; --accent-ink: #08241A;
+  --seg-h: #4C86BE; --seg-d: #66758A; --seg-a: #E0803F; --seg-text: #0B1420;
+  --warn: #F0C46A; --warn-bg: #2E2410;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 28px 56px; }
+.wrap { max-width: 1060px; margin-inline: auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.05; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { font-size: clamp(38px, 8vw, 64px); letter-spacing: .005em; }
+.sub { color: var(--ink-2); max-width: 62ch; }
+
+/* summary board */
+.board { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.board-head h2 { font-size: 26px; }
+.row { display: grid; grid-template-columns: 64px minmax(0, 1.6fr) 96px minmax(0, 1fr) 96px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row.cols { padding-block: 8px; background: var(--surface-2); }
+.row .ko { font-family: var(--f-mono); font-size: 14px; }
+.row .fx { font-family: var(--f-display); font-weight: 600; font-size: 21px; line-height: 1.1; min-width: 0; }
+.row .fx span { color: var(--ink-2); font-weight: 600; font-size: 15px; padding-inline: 4px; }
+.score { font-family: var(--f-display); font-weight: 700; font-size: 30px; letter-spacing: .02em; text-align: center; background: var(--ink); color: var(--bg); border-radius: 6px; padding: 2px 0; }
+.pickcell { font-weight: 600; min-width: 0; }
+.conf { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; }
+.conf.high { color: var(--accent); }
+.conf.med { color: var(--seg-a); }
+.conf.low { color: var(--ink-2); }
+
+/* cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.team { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.team.away { text-align: right; align-items: flex-end; }
+.team h3 { font-size: 28px; overflow-wrap: anywhere; }
+.team .meta { font-size: 12.5px; color: var(--ink-2); }
+.big { font-family: var(--f-display); font-weight: 700; font-size: 44px; line-height: 1; text-align: center; white-space: nowrap; }
+.big small { display: block; font-family: var(--f-body); font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+.bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.seg { display: flex; align-items: center; justify-content: center; color: var(--seg-text); font-family: var(--f-mono); font-size: 13px; min-width: 0; }
+.seg.h { background: var(--seg-h); } .seg.d { background: var(--seg-d); } .seg.a { background: var(--seg-a); }
+.bar-key { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-2); margin-top: 5px; }
+.verdict { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.verdict .pill { background: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 4px 12px; border-radius: 99px; font-size: 14px; }
+ul.why { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fact { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; min-width: 0; font-size: 13.5px; }
+.news { font-size: 13.5px; border-top: 1px dashed var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.news.unconfirmed { color: var(--ink-2); }
+.risk { font-size: 13.5px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 9px 12px; }
+.others { font-size: 13px; color: var(--ink-2); }
+
+.notes { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+.notes h2 { font-size: 24px; margin-bottom: 8px; }
+.notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.theme-btn { font: inherit; font-size: 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; cursor: pointer; }
+.top-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .row { grid-template-columns: 56px minmax(0, 1fr) 72px; grid-template-areas: "ko fx score" "ko pick conf"; row-gap: 6px; }
+  .row.cols { display: none; }
+  .row .ko { grid-area: ko; align-self: start; padding-top: 4px; }
+  .row .fx { grid-area: fx; }
+  .row .score { grid-area: score; }
+  .row .pickcell { grid-area: pick; font-size: 14px; }
+  .row .conf { grid-area: conf; }
+  .teams { grid-template-columns: 1fr 1fr; grid-template-areas: "h a" "s s"; }
+  .teams .big { grid-area: s; order: 3; }
+  .team.home { grid-area: h; } .team.away { grid-area: a; }
+  .facts { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) { .seg { transition: flex-basis .3s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="top-line">
+      <span class="label">Samedi 10 octobre 2026 · 6e journée · Heures de coup d'envoi du Royaume-Uni</span>
+      <button class="theme-btn" id="themeBtn" type="button">Changer de thème</button>
+    </div>
+    <h1>Tableau de la journée : Premier League</h1>
+    <p class="sub">Six matchs aujourd'hui, chacun avec un score prévu, des probabilités victoire/nul/défaite et les raisons du choix. Les probabilités sont mes propres estimations, construites à partir du classement, des résultats récents et des avant-matchs publiés. Ce ne sont pas des cotes de bookmakers.</p>
+  </header>
+
+  <section class="board" aria-labelledby="sum-h">
+    <div class="board-head">
+      <h2 id="sum-h">Les choix du jour</h2>
+      <span class="label">Classés par heure de coup d'envoi</span>
+    </div>
+    <div class="row cols label"><span>Heure</span><span>Match</span><span style="text-align:center">Score</span><span>Choix</span><span style="text-align:center">Confiance</span></div>
+    <div id="summary"></div>
+  </section>
+
+  <section class="cards" id="cards" aria-label="Détail des matchs"></section>
+
+  <section class="notes" aria-labelledby="notes-h">
+    <div>
+      <h2 id="notes-h">Comment lire ce tableau</h2>
+      <ul>
+        <li>Les barres de probabilité se lisent domicile / nul / extérieur et totalisent toujours 100 %.</li>
+        <li>La confiance reflète l'écart entre les deux équipes, pas la probabilité du score exact. Les scores exacts sont ce qu'il y a de plus difficile à prévoir au football.</li>
+        <li>Chaque équipe n'a joué que cinq matchs : chaque place au classement et chaque ligne de forme repose donc sur un petit échantillon.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Ce que je n'ai pas pu confirmer</h2>
+      <ul>
+        <li>Les compositions confirmées. Elles sortent environ une heure avant le coup d'envoi. Vérifiez-les avant de vous fier à un choix.</li>
+        <li>Les listes de blessés d'Arsenal, Leeds, Villa, Brentford, Chelsea, Bournemouth, Man United et des Spurs. Je n'ai trouvé aucune information d'équipe récente pour ces clubs.</li>
+        <li>Les sources ne s'accordent pas sur le lieu de la défaite 3-0 d'Arsenal contre Brighton. Cela ne change pas les choix.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Sources</h2>
+      <ul>
+        <li><a href="https://www.espn.com/soccer/standings/_/league/eng.1">Classement ESPN</a> (tableau, buts, points)</li>
+        <li><a href="https://www.skysports.com/premier-league-scores-fixtures">Calendrier Sky Sports</a> (heures de coup d'envoi)</li>
+        <li><a href="https://www.lohsports.com/post/2026-27-premier-league-preview-gameweek-6">Avant-match Loh Sports, 6e journée</a></li>
+        <li><a href="https://thefootballtoday.substack.com/p/premier-league-202627-matchday-6">Football Today, 6e journée</a></li>
+        <li><a href="https://www.footballdream.in/blog/sunderland-vs-brighton-gw6-premier-league-2026-27">FootballDream Sunderland - Brighton</a> (infos d'équipe, modèle de buts)</li>
+        <li><a href="https://www.squawka.com/us/news/match-preview-ipswich-town-vs-fulham-10-10-26-premier-league/">Squawka Ipswich - Fulham</a> (infos d'équipe)</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+var MATCHES = [
+  {
+    ko: "12:30", home: "Arsenal", away: "Leeds United",
+    hPos: 2, aPos: 5, hRec: "4-0-1 · 12 pts · diff. +4", aRec: "2-3-0 · 9 pts · diff. +4",
+    score: [1, 0], p: [62, 23, 15], pick: "Victoire d'Arsenal", conf: "high",
+    why: [
+      "Arsenal a gagné 11 des 13 dernières confrontations et reste sur six victoires à domicile d'affilée.",
+      "Leeds n'a pas battu Arsenal depuis 2003, même s'il est invaincu cette saison et partage la meilleure défense du championnat (3 buts encaissés).",
+      "La seule défaite d'Arsenal cette saison est le 3-0 contre Brighton, et le club a 8 buts en 5 matchs : une victoire à faible score est donc le scénario le plus probable."
+    ],
+    risk: "Leeds fait beaucoup de nuls (trois en cinq). Un match fermé avec peu d'occasions est la façon dont ils prennent un point.",
+    others: "Autres avant-matchs : Arsenal 1-0, Arsenal 2-0, et un modèle donnant 68 % à Arsenal.",
+    news: null
+  },
+  {
+    ko: "15:00", home: "Aston Villa", away: "Brentford",
+    hPos: 16, aPos: 4, hRec: "1-1-3 · 4 pts · diff. -5", aRec: "2-3-0 · 9 pts · diff. +6",
+    score: [1, 1], p: [32, 30, 38], pick: "Nul ou Brentford", conf: "low",
+    why: [
+      "La victoire 3-2 de Villa à Tottenham était sa première de la saison, et le club a le troisième pire bilan à domicile du championnat.",
+      "Brentford est invaincu, marque 2,0 buts par match et a battu Chelsea 3-0 cette saison.",
+      "Brentford mène 6-4 sur les 18 dernières confrontations, le reste étant des nuls."
+    ],
+    risk: "Villa a encaissé 9 buts en cinq matchs, mais sa première victoire peut lui donner de la confiance, et une bonne prestation à domicile peut tout renverser. C'est le match le moins prévisible des six.",
+    others: "Autres avant-matchs : 1-1 et un nul.",
+    news: null
+  },
+  {
+    ko: "15:00", home: "Chelsea", away: "AFC Bournemouth",
+    hPos: 10, aPos: 17, hRec: "2-1-2 · 7 pts · diff. -2", aRec: "0-3-2 · 3 pts · diff. -2",
+    score: [2, 1], p: [49, 27, 24], pick: "Victoire de Chelsea", conf: "med",
+    why: [
+      "Chelsea a l'avantage de la qualité et a gagné 55 % des 20 dernières confrontations, contre 20 % pour Bournemouth.",
+      "Bournemouth reste sur sept matchs de championnat sans victoire (cinq nuls, deux défaites) et n'a aucune victoire cette saison.",
+      "Les deux équipes ont encaissé beaucoup de buts (Chelsea 12, Bournemouth 8), je m'attends donc à ce que les deux marquent."
+    ],
+    risk: "Les trois dernières confrontations se sont toutes terminées sur un nul, et Chelsea n'a pris qu'un point lors de ses trois derniers matchs de championnat. Un 2-2 est un résultat bien possible.",
+    others: "Autres avant-matchs : victoire de Chelsea, victoire de Chelsea, et 2-2 (deux fois).",
+    news: null
+  },
+  {
+    ko: "15:00", home: "Ipswich Town", away: "Fulham",
+    hPos: 11, aPos: 19, hRec: "2-0-3 · 6 pts · diff. -4", aRec: "0-2-3 · 2 pts · diff. -3",
+    score: [2, 1], p: [45, 27, 28], pick: "Victoire d'Ipswich", conf: "low",
+    why: [
+      "Fulham n'a pas gagné en cinq matchs de championnat et se trouve dans les trois derniers. Le club a fait 1-1 contre Man United après avoir encaissé tard.",
+      "Ipswich marque correctement (1,4 par match, 8e) mais encaisse beaucoup (2,2 par match, 18e) : Fulham aura donc des occasions.",
+      "Fulham domine les confrontations directes (50 % des 12 dernières contre 25 % pour Ipswich), ce qui explique ma faible confiance."
+    ],
+    risk: "Ipswich a perdu 1-0 à Everton lors de son dernier match et a perdu trois de ses cinq. Le bilan de Fulham est faible, mais son historique contre Ipswich est bon.",
+    others: "Autres avant-matchs : victoire d'Ipswich (2-1 et un choix simple).",
+    news: "Absents signalés : Ipswich a un joueur suspendu et Taylor est blessé. Fulham est privé de Cairney (genou) et de Tete (blessure à la tête). Ces informations viennent d'un avant-match de Squawka ; vérifiez les sites des clubs avant le coup d'envoi."
+  },
+  {
+    ko: "15:00", home: "Sunderland", away: "Brighton & Hove Albion",
+    hPos: 14, aPos: 3, hRec: "1-1-3 · 4 pts · diff. -4", aRec: "3-1-1 · 10 pts · diff. +11",
+    score: [1, 2], p: [14, 20, 66], pick: "Victoire de Brighton", conf: "high",
+    why: [
+      "Brighton a la meilleure moyenne de buts du championnat (3,2 par match) et a gagné trois matchs d'affilée sur un total de 11-2, dont le 3-0 contre Arsenal.",
+      "Sunderland a encaissé 10 buts en cinq matchs, dont cinq à Man City, et n'a pris qu'un point lors de ses trois derniers.",
+      "Un modèle de buts donne 73 % à Brighton, avec des buts attendus de 2,9 contre 1,2."
+    ],
+    risk: "Brighton pourrait être privé de Dunk (75 % de chances de jouer), et les deux équipes devraient aligner cinq défenseurs, ce qui peut rendre le match plus fermé que ne le suggèrent les chiffres.",
+    others: "Autres avant-matchs : victoire de Brighton (1-3) et un score de modèle de 1-2.",
+    news: "Sunderland : Brobbey (ischio-jambiers, de retour vers le 25 oct.) et Ballard (ischio-jambiers) sont absents. Brighton : Dunk (cou) a 75 % de chances de jouer et Hinshelwood (cheville) revient aujourd'hui. Source : liste de blessés FPL via FootballDream, 9 oct."
+  },
+  {
+    ko: "17:30", home: "Manchester United", away: "Tottenham Hotspur",
+    hPos: 12, aPos: 20, hRec: "1-2-2 · 5 pts · diff. 0", aRec: "0-2-3 · 2 pts · diff. -6",
+    score: [2, 0], p: [54, 28, 18], pick: "Victoire de Man United", conf: "med",
+    why: [
+      "Tottenham est dernier avec deux buts en cinq matchs (0,4 par match) et a perdu 25 fois à Old Trafford depuis la création de la Premier League.",
+      "United a marqué 8 buts en cinq matchs et a arraché un point tardif à Fulham : il peut donc trouver des buts contre une équipe qui marque rarement.",
+      "Les Spurs n'ont pas gagné en cinq matchs, avec deux nuls et trois défaites, et ont chuté à domicile contre Aston Villa avant la trêve."
+    ],
+    risk: "United n'a qu'une victoire en cinq matchs et n'a pas gagné lors des trois derniers. La défense des Spurs n'est guère meilleure (8 buts encaissés) : un nul à faible score est donc le principal danger.",
+    others: "Les autres avant-matchs sont partagés : victoire d'United, 0-0, 2-2 et 4-2.",
+    news: null
+  }
+];
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+var CONF = { high: "Élevée", med: "Moyenne", low: "Faible" };
+
+document.getElementById("summary").innerHTML = MATCHES.map(function (m) {
+  return '<div class="row">' +
+    '<span class="ko">' + m.ko + '</span>' +
+    '<span class="fx">' + esc(m.home) + '<span>–</span>' + esc(m.away) + '</span>' +
+    '<span class="score">' + m.score[0] + ' – ' + m.score[1] + '</span>' +
+    '<span class="pickcell">' + esc(m.pick) + '</span>' +
+    '<span class="conf ' + m.conf + '">' + CONF[m.conf] + '</span></div>';
+}).join("");
+
+document.getElementById("cards").innerHTML = MATCHES.map(function (m) {
+  var news = m.news
+    ? '<div class="news"><span class="label">Infos d’équipe</span><span>' + esc(m.news) + '</span></div>'
+    : '<div class="news unconfirmed"><span class="label">Infos d’équipe</span><span>Aucun rapport récent de blessure ou de suspension trouvé. Vérifiez les compositions une heure avant le coup d’envoi.</span></div>';
+  return '<article class="card">' +
+    '<div class="card-top"><span class="label mono">' + m.ko + ' BST</span><span class="conf ' + m.conf + '">' + CONF[m.conf] + ' de confiance</span></div>' +
+    '<div class="teams">' +
+      '<div class="team home"><h3>' + esc(m.home) + '</h3><span class="meta mono">#' + m.hPos + ' · ' + esc(m.hRec) + '</span></div>' +
+      '<div class="big"><small>Score prévu</small>' + m.score[0] + ' – ' + m.score[1] + '</div>' +
+      '<div class="team away"><h3>' + esc(m.away) + '</h3><span class="meta mono">#' + m.aPos + ' · ' + esc(m.aRec) + '</span></div>' +
+    '</div>' +
+    '<div><div class="bar" role="img" aria-label="Domicile ' + m.p[0] + '%, nul ' + m.p[1] + '%, extérieur ' + m.p[2] + '%">' +
+      '<div class="seg h" style="flex:' + m.p[0] + '">' + m.p[0] + '%</div>' +
+      '<div class="seg d" style="flex:' + m.p[1] + '">' + m.p[1] + '%</div>' +
+      '<div class="seg a" style="flex:' + m.p[2] + '">' + m.p[2] + '%</div></div>' +
+      '<div class="bar-key"><span>Victoire dom.</span><span>Nul</span><span>Victoire ext.</span></div></div>' +
+    '<div class="verdict"><span class="label">Mon choix</span><span class="pill">' + esc(m.pick) + '</span></div>' +
+    '<ul class="why">' + m.why.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join("") + '</ul>' +
+    '<p class="risk"><strong>Risque principal.</strong> ' + esc(m.risk) + '</p>' +
+    '<p class="others">' + esc(m.others) + '</p>' + news +
+    '</article>';
+}).join("");
+
+(function () {
+  var btn = document.getElementById("themeBtn");
+  btn.addEventListener("click", function () {
+    var root = document.documentElement;
+    var cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+})();
+</script>

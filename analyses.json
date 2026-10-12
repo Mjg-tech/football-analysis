@@ -1,9 +1,9 @@
 [
-  {"file":"2026-10-10-five-leagues-bets.html","date":"2026-10-10","title":"Five-League Bet Board","kind":"Bettable events","scope":"Premier League, Bundesliga, Ligue 1, La Liga, Serie A (24 matches)"},
-  {"file":"2026-10-10-eredivisie-bets.html","date":"2026-10-10","title":"Eredivisie Bet Board","kind":"Bettable events","scope":"Eredivisie (4 matches)"},
-  {"file":"2026-10-10-serie-a.html","date":"2026-10-10","title":"Serie A Matchday Board","kind":"Predictions","scope":"Serie A (3 matches)"},
-  {"file":"2026-10-10-la-liga.html","date":"2026-10-10","title":"La Liga Matchday Board","kind":"Predictions","scope":"La Liga (4 matches)"},
-  {"file":"2026-10-10-ligue-1.html","date":"2026-10-10","title":"Ligue 1 Matchday Board","kind":"Predictions","scope":"Ligue 1 (5 matches)"},
-  {"file":"2026-10-10-bundesliga.html","date":"2026-10-10","title":"Bundesliga Matchday Board","kind":"Predictions","scope":"Bundesliga (6 matches)"},
-  {"file":"2026-10-10-premier-league.html","date":"2026-10-10","title":"Premier League Matchday Board","kind":"Predictions","scope":"Premier League (6 matches)"}
+  {"file":"2026-10-10-five-leagues-bets.html","date":"2026-10-10","title":"Five-League Bet Board","kind":"Bettable events","scope":"Premier League, Bundesliga, Ligue 1, La Liga, Serie A (24 matches)","title_fr":"Tableau des paris : 5 championnats","kind_fr":"Événements pariables","scope_fr":"Premier League, Bundesliga, Ligue 1, Liga, Serie A (24 matchs)"},
+  {"file":"2026-10-10-eredivisie-bets.html","date":"2026-10-10","title":"Eredivisie Bet Board","kind":"Bettable events","scope":"Eredivisie (4 matches)","title_fr":"Tableau des paris : Eredivisie","kind_fr":"Événements pariables","scope_fr":"Eredivisie (4 matchs)"},
+  {"file":"2026-10-10-serie-a.html","date":"2026-10-10","title":"Serie A Matchday Board","kind":"Predictions","scope":"Serie A (3 matches)","title_fr":"Tableau de la journée : Serie A","kind_fr":"Pronostics","scope_fr":"Serie A (3 matchs)"},
+  {"file":"2026-10-10-la-liga.html","date":"2026-10-10","title":"La Liga Matchday Board","kind":"Predictions","scope":"La Liga (4 matches)","title_fr":"Tableau de la journée : Liga","kind_fr":"Pronostics","scope_fr":"Liga (4 matchs)"},
+  {"file":"2026-10-10-ligue-1.html","date":"2026-10-10","title":"Ligue 1 Matchday Board","kind":"Predictions","scope":"Ligue 1 (5 matches)","title_fr":"Tableau de la journée : Ligue 1","kind_fr":"Pronostics","scope_fr":"Ligue 1 (5 matchs)"},
+  {"file":"2026-10-10-bundesliga.html","date":"2026-10-10","title":"Bundesliga Matchday Board","kind":"Predictions","scope":"Bundesliga (6 matches)","title_fr":"Tableau de la journée : Bundesliga","kind_fr":"Pronostics","scope_fr":"Bundesliga (6 matchs)"},
+  {"file":"2026-10-10-premier-league.html","date":"2026-10-10","title":"Premier League Matchday Board","kind":"Predictions","scope":"Premier League (6 matches)","title_fr":"Tableau de la journée : Premier League","kind_fr":"Pronostics","scope_fr":"Premier League (6 matchs)"}
 ]
