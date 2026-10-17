@@ -1,0 +1,1959 @@
+<title>Five-League Bet Board: 17 October</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a fixture-board summary strip on top, then one detailed card per match, ordered by kick-off. */
+:root {
+  --bg: #F1F0EC;
+  --surface: #FFFFFF;
+  --surface-2: #E6E4DC;
+  --ink: #1A1A1F;
+  --ink-2: #57565E;
+  --line: #D2CFC4;
+  --accent: #1E6B4B;
+  --accent-ink: #FFFFFF;
+  --seg-h: #1F4E79;
+  --seg-d: #8A8A92;
+  --seg-a: #B9521A;
+  --seg-text: #FFFFFF;
+  --warn: #7A5200;
+  --warn-bg: #FBF0D5;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131316; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+    --line: #36363E; --accent: #5FC495; --accent-ink: #08241A;
+    --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+    --warn: #F0C46A; --warn-bg: #2E2410;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131316; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+  --line: #36363E; --accent: #5FC495; --accent-ink: #08241A;
+  --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+  --warn: #F0C46A; --warn-bg: #2E2410;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 28px 56px; }
+.wrap { max-width: 1060px; margin-inline: auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.05; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { font-size: clamp(38px, 8vw, 64px); letter-spacing: .005em; }
+.sub { color: var(--ink-2); max-width: 62ch; }
+
+.board { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.board-head h2 { font-size: 26px; }
+.row { display: grid; grid-template-columns: 64px minmax(0, 1.6fr) 96px minmax(0, 1fr) 96px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row.cols { padding-block: 8px; background: var(--surface-2); }
+.row .ko { font-family: var(--f-mono); font-size: 14px; }
+.row .fx { font-family: var(--f-display); font-weight: 600; font-size: 21px; line-height: 1.1; min-width: 0; }
+.row .fx span { color: var(--ink-2); font-weight: 600; font-size: 15px; padding-inline: 4px; }
+.score { font-family: var(--f-display); font-weight: 700; font-size: 30px; letter-spacing: .02em; text-align: center; background: var(--ink); color: var(--bg); border-radius: 6px; padding: 2px 0; }
+.pickcell { font-weight: 600; min-width: 0; }
+.conf { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; }
+.conf.high { color: var(--accent); }
+.conf.med { color: var(--seg-a); }
+.conf.low { color: var(--ink-2); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.team { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.team.away { text-align: right; align-items: flex-end; }
+.team h3 { font-size: 28px; overflow-wrap: anywhere; }
+.team .meta { font-size: 12.5px; color: var(--ink-2); }
+.big { font-family: var(--f-display); font-weight: 700; font-size: 44px; line-height: 1; text-align: center; white-space: nowrap; }
+.big small { display: block; font-family: var(--f-body); font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+.bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.seg { display: flex; align-items: center; justify-content: center; color: var(--seg-text); font-family: var(--f-mono); font-size: 13px; min-width: 0; }
+.seg.h { background: var(--seg-h); } .seg.d { background: var(--seg-d); } .seg.a { background: var(--seg-a); }
+.bar-key { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-2); margin-top: 5px; }
+.verdict { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.verdict .pill { background: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 4px 12px; border-radius: 99px; font-size: 14px; }
+ul.why { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.news { font-size: 13.5px; border-top: 1px dashed var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.news.unconfirmed { color: var(--ink-2); }
+.risk { font-size: 13.5px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 9px 12px; }
+.others { font-size: 13px; color: var(--ink-2); }
+
+.notes { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+.notes h2 { font-size: 24px; margin-bottom: 8px; }
+.notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.theme-btn { font: inherit; font-size: 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; cursor: pointer; }
+.top-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .row { grid-template-columns: 56px minmax(0, 1fr) 72px; grid-template-areas: "ko fx score" "ko pick conf"; row-gap: 6px; }
+  .row.cols { display: none; }
+  .row .ko { grid-area: ko; align-self: start; padding-top: 4px; }
+  .row .fx { grid-area: fx; }
+  .row .score { grid-area: score; }
+  .row .pickcell { grid-area: pick; font-size: 14px; }
+  .row .conf { grid-area: conf; }
+  .teams { grid-template-columns: 1fr 1fr; grid-template-areas: "h a" "s s"; }
+  .teams .big { grid-area: s; order: 3; }
+  .team.home { grid-area: h; } .team.away { grid-area: a; }
+}
+@media (prefers-reduced-motion: no-preference) { .seg { transition: flex-basis .3s; } }
+</style>
+
+<style>
+.ev { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.3fr) 64px 118px; gap: 14px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.ev:last-child { border-bottom: 0; }
+.ev.cols { padding-block: 8px; background: var(--surface-2); }
+.ev-name { min-width: 0; font-weight: 500; }
+.ev-name small { display: block; color: var(--ink-2); font-size: 12.5px; font-weight: 400; }
+.meter { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.track { position: relative; flex: 1; height: 12px; background: var(--surface-2); border-radius: 6px; min-width: 0; }
+.fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 6px; }
+.tick { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); border-radius: 1px; }
+.pct { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 14px; width: 44px; text-align: right; }
+.odds { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 14px; text-align: right; color: var(--ink-2); }
+.chip { font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; justify-self: end; white-space: nowrap; }
+.chip.fair, .chip.above { color: var(--accent); }
+.chip.above { background: var(--surface-2); }
+.chip.short { color: var(--seg-a); }
+.chip.none { color: var(--ink-2); }
+.match { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.match-head { padding: 18px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid var(--line); }
+.mh-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.mh-teams { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.mh-teams h3 { font-size: 30px; }
+.mh-teams h3 span { color: var(--ink-2); font-size: 20px; padding-inline: 6px; }
+.legend { font-size: 12.5px; color: var(--ink-2); padding: 10px 16px; border-top: 1px solid var(--line); display: flex; gap: 16px; flex-wrap: wrap; }
+.legend span::before { content: ""; display: inline-block; vertical-align: middle; margin-right: 6px; }
+.legend .l-fill::before { width: 18px; height: 8px; background: var(--accent); border-radius: 4px; }
+.legend .l-tick::before { width: 2px; height: 14px; background: var(--ink); }
+.matches { display: flex; flex-direction: column; gap: 22px; }
+.callout { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 12px 16px; font-size: 14px; }
+.callouts { display: flex; flex-direction: column; gap: 10px; }
+.sec-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.sec-title h2 { font-size: 26px; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--bg); padding-block: 8px; }
+.tab { font: inherit; font-weight: 600; font-size: 14px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 99px; padding: 7px 14px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tab small { font-weight: 500; opacity: .75; margin-left: 4px; }
+.panel { display: flex; flex-direction: column; gap: 22px; }
+@media (max-width: 720px) {
+  .ev { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name chip" "meter odds"; row-gap: 6px; }
+  .ev.cols { display: none; }
+  .ev .ev-name { grid-area: name; } .ev .meter { grid-area: meter; } .ev .odds { grid-area: odds; } .ev .chip { grid-area: chip; }
+}
+</style>
+<style>
+.ctx { font-size: 12.5px; color: var(--ink-2); display: flex; flex-direction: column; gap: 2px; }
+.tag-nm { font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--warn); background: var(--warn-bg); border-radius: 99px; padding: 2px 8px; }
+</style>
+<div class="wrap">
+  <header>
+    <div class="top-line">
+      <span class="label">Saturday 17 October 2026 · 21 matches in 5 leagues · Kick-offs in UK time (BST), the same as Kinshasa time</span>
+      <button class="theme-btn" id="themeBtn" type="button">Switch theme</button>
+    </div>
+    <h1>Five-League Bet Board</h1>
+    <p class="sub">The events most likely to happen in each of today's La Liga, Serie A, Premier League, Ligue 1 and Bundesliga games. Every probability is my own estimate: bookmaker prices (one site, via ESPN) converted into a goals model and blended with each team's season scoring and conceding. A high probability is not the same as a good bet, so rows with a quoted price also show the break-even point.</p>
+  </header>
+
+  <div class="callouts">
+    <div class="callout"><strong>No injury or line-up information.</strong> My searches found no current team news for any of these 21 games, so none of it is in the numbers. Rotation and absences can move a probability a lot, especially for big favourites. Check line-ups about an hour before kick-off.</div>
+    <div class="callout"><strong>No corner or card markets this time.</strong> I had no corner or card averages for these games, so the board covers goals, team-to-score, both-teams-to-score, double chance and results only.</div>
+    <div class="callout"><strong>Only 5 Premier League games today.</strong> ESPN lists five Premier League games on 17 October (Everton, Brentford, Fulham, Man City, Newcastle at home). The rest of the round was not on today's schedule. Kick-off times are ESPN's; one other site lists Betis v Barcelona 30 minutes later (18:30 Spanish time, 17:30 UK).</div>
+    <div class="callout"><strong>Hamburg v Stuttgart has no bookmaker price</strong> on the source, so it is rated from season goals alone and is less reliable than the other 20.</div>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="League" id="tabs"></nav>
+  <div id="panels"></div>
+
+  <section class="notes" aria-labelledby="notes-h">
+    <div>
+      <h2 id="notes-h">How to read the numbers</h2>
+      <ul>
+        <li>The bar is my estimated chance. The black tick is the break-even chance at the odds (1 divided by the odds). If the bar ends before the tick, the price is shorter than my estimate.</li>
+        <li>"Close to fair" means my estimate is within 3 points of break-even. "Priced short" means it is lower. "Above the price" means it is 3 or more points higher. Bookmaker prices include a margin, so most rows are priced short.</li>
+        <li>Only results and the quoted goals line have a price. Rows with no odds are estimates only.</li>
+        <li>"Model goals" are the goals each team is expected to score. They come from 70% bookmaker prices and 30% season scoring and conceding rates, so a match with no price leans fully on the season rates. Win and draw chances use the same 70/30 blend directly.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Limits</h2>
+      <ul>
+        <li>Teams have played between 5 and 9 league games, so season rates are noisy. Treat gaps of a few points as noise.</li>
+        <li>The goals model treats the two teams' goals as independent. It tends to understate draws and 0-0 or 1-1 results a little.</li>
+        <li>Combining several events into one bet multiplies the risk, and no result is guaranteed. Only stake money you can afford to lose.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Sources</h2>
+      <ul>
+        <li><a href="https://www.espn.com/soccer/schedule/_/date/20261017">ESPN soccer schedule, 17 October 2026</a> (fixtures, kick-off times, DraftKings prices, league tables and last-five results for all 21 matches)</li>
+        <li><a href="https://www.sport-flash.com/sports/football/es/calendar/2026-10-17/laliga-2026-2027">Sport-Flash</a> and <a href="https://ligue1.com/en/articles/l1_article_5797-programmations-tv-j6-j7-et-j8-l1-2627">Ligue 1</a> (cross-check of kick-off times)</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+var LEAGUES = [
+ {
+  "id": "liga",
+  "name": "La Liga",
+  "matches": [
+   {
+    "ko": "13:00",
+    "home": "Espanyol",
+    "away": "Atlético Madrid",
+    "p3": [
+     22,
+     24,
+     54
+    ],
+    "xg": [
+     "1.1",
+     "1.8"
+    ],
+    "likely": "Likeliest score 1 – 1 (11%)",
+    "ctx": [
+     "Espanyol: 12th, 8 pts · last 5 (newest first): D W L L D",
+     "Atlético Madrid: 2nd, 19 pts · last 5 (newest first): W W W W W"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Atlético Madrid to score",
+      "d": "2.3 goals a game this season",
+      "p": 84,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 2.9 goals",
+      "p": 79,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Atlético Madrid or draw",
+      "d": "Double chance",
+      "p": 78,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Espanyol to score",
+      "d": "1.4 goals a game this season",
+      "p": 66,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Model total 2.9 goals",
+      "p": 66,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Bookmaker line is 2.5",
+      "p": 56,
+      "o": 1.67
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.1 and 1.8",
+      "p": 56,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Atlético Madrid win",
+      "d": "Bookmaker price with the margin removed: 57%",
+      "p": 55,
+      "o": 1.67
+     }
+    ]
+   },
+   {
+    "ko": "15:15",
+    "home": "Villarreal",
+    "away": "Elche",
+    "p3": [
+     64,
+     19,
+     17
+    ],
+    "xg": [
+     "2.4",
+     "1.2"
+    ],
+    "likely": "Likeliest score 2 – 1 (10%)",
+    "ctx": [
+     "Villarreal: 11th, 8 pts · last 5 (newest first): L W W L W",
+     "Elche: 18th, 6 pts · last 5 (newest first): L D L W D"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Villarreal to score",
+      "d": "1.6 goals a game this season",
+      "p": 91,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.5 goals",
+      "p": 87,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Villarreal or draw",
+      "d": "Double chance",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Elche to score",
+      "d": "1.4 goals a game this season",
+      "p": 69,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Model total 3.5 goals",
+      "p": 69,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Villarreal win",
+      "d": "Bookmaker price with the margin removed: 67%",
+      "p": 64,
+      "o": 1.42
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 2.4 and 1.2",
+      "p": 62,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Bookmaker line is 3.5",
+      "p": 53,
+      "o": 1.8
+     }
+    ]
+   },
+   {
+    "ko": "17:00",
+    "home": "Betis",
+    "away": "Barcelona",
+    "p3": [
+     17,
+     18,
+     65
+    ],
+    "xg": [
+     "1.4",
+     "2.7"
+    ],
+    "likely": "Likeliest score 1 – 2 (8%)",
+    "ctx": [
+     "Betis: 3rd, 19 pts · last 5 (newest first): W W D W W",
+     "Barcelona: 1st, 24 pts · last 5 (newest first): W W W W W"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Barcelona to score",
+      "d": "4.3 goals a game this season",
+      "p": 93,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 4.1 goals",
+      "p": 91,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Barcelona or draw",
+      "d": "Double chance",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Model total 4.1 goals",
+      "p": 77,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Betis to score",
+      "d": "1.8 goals a game this season",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.4 and 2.7",
+      "p": 70,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Barcelona win",
+      "d": "Bookmaker price with the margin removed: 66%",
+      "p": 65,
+      "o": 1.45
+     },
+     {
+      "fam": "tot",
+      "n": "Over 3.5 goals",
+      "d": "Model total 4.1 goals",
+      "p": 58,
+      "o": null
+     }
+    ]
+   },
+   {
+    "ko": "20:00",
+    "home": "Valencia",
+    "away": "Athletic Club",
+    "p3": [
+     28,
+     29,
+     43
+    ],
+    "xg": [
+     "1.0",
+     "1.3"
+    ],
+    "likely": "Likeliest score 1 – 1 (13%)",
+    "ctx": [
+     "Valencia: 19th, 5 pts · last 5 (newest first): L L W L D",
+     "Athletic Club: 10th, 8 pts · last 5 (newest first): L W W D D"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Model total 2.4 goals",
+      "p": 78,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Athletic Club to score",
+      "d": "1.2 goals a game this season",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Athletic Club or draw",
+      "d": "Double chance",
+      "p": 72,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 2.4 goals",
+      "p": 69,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Valencia to score",
+      "d": "0.8 goals a game this season",
+      "p": 65,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 2.5 goals",
+      "d": "Bookmaker line is 2.5",
+      "p": 57,
+      "o": 1.74
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score: No",
+      "d": "Model goals 1.0 and 1.3",
+      "p": 52,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Athletic Club win",
+      "d": "Bookmaker price with the margin removed: 41%",
+      "p": 43,
+      "o": 2.35
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "seriea",
+  "name": "Serie A",
+  "matches": [
+   {
+    "ko": "14:00",
+    "home": "Venezia",
+    "away": "Napoli",
+    "p3": [
+     20,
+     23,
+     57
+    ],
+    "xg": [
+     "1.0",
+     "1.9"
+    ],
+    "likely": "Likeliest score 1 – 1 (10%)",
+    "ctx": [
+     "Venezia: 20th, 0 pts · last 5 (newest first): L L L L L",
+     "Napoli: 9th, 10 pts · last 5 (newest first): L W D W L"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Napoli to score",
+      "d": "1.7 goals a game this season",
+      "p": 85,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.0 goals",
+      "p": 80,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Napoli or draw",
+      "d": "Double chance",
+      "p": 80,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Venezia to score",
+      "d": "0.8 goals a game this season",
+      "p": 65,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Model total 3.0 goals",
+      "p": 65,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Napoli win",
+      "d": "Bookmaker price with the margin removed: 55%",
+      "p": 58,
+      "o": 1.69
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Bookmaker line is 2.5",
+      "p": 57,
+      "o": 1.69
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.0 and 1.9",
+      "p": 55,
+      "o": null
+     }
+    ]
+   },
+   {
+    "ko": "17:00",
+    "home": "Bologna",
+    "away": "Inter",
+    "p3": [
+     19,
+     23,
+     58
+    ],
+    "xg": [
+     "1.1",
+     "2.0"
+    ],
+    "likely": "Likeliest score 1 – 1 (10%)",
+    "ctx": [
+     "Bologna: 14th, 5 pts · last 5 (newest first): L D L D W",
+     "Inter: 1st, 16 pts · last 5 (newest first): W D W W L"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Inter to score",
+      "d": "3.0 goals a game this season",
+      "p": 86,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.0 goals",
+      "p": 81,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Inter or draw",
+      "d": "Double chance",
+      "p": 81,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Bologna to score",
+      "d": "0.8 goals a game this season",
+      "p": 65,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Model total 3.0 goals",
+      "p": 64,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Bookmaker line is 2.5",
+      "p": 59,
+      "o": 1.59
+     },
+     {
+      "fam": "win",
+      "n": "Inter win",
+      "d": "Bookmaker price with the margin removed: 61%",
+      "p": 59,
+      "o": 1.53
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.1 and 2.0",
+      "p": 56,
+      "o": null
+     }
+    ]
+   },
+   {
+    "ko": "19:45",
+    "home": "Roma",
+    "away": "Genoa",
+    "p3": [
+     65,
+     21,
+     14
+    ],
+    "xg": [
+     "2.0",
+     "0.8"
+    ],
+    "likely": "Likeliest score 2 – 0 (12%)",
+    "ctx": [
+     "Roma: 3rd, 14 pts · last 5 (newest first): D W D D L",
+     "Genoa: 17th, 4 pts · last 5 (newest first): D W L L W"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Roma to score",
+      "d": "2.3 goals a game this season",
+      "p": 87,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Roma or draw",
+      "d": "Double chance",
+      "p": 86,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 2.8 goals",
+      "p": 77,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Model total 2.8 goals",
+      "p": 69,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Roma win",
+      "d": "Bookmaker price with the margin removed: 59%",
+      "p": 65,
+      "o": 1.56
+     },
+     {
+      "fam": "ts",
+      "n": "Genoa to score",
+      "d": "0.8 goals a game this season",
+      "p": 55,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Bookmaker line is 2.5",
+      "p": 54,
+      "o": 1.83
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score: No",
+      "d": "Model goals 2.0 and 0.8",
+      "p": 52,
+      "o": null
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "pl",
+  "name": "Premier League",
+  "matches": [
+   {
+    "ko": "12:30",
+    "home": "Everton",
+    "away": "Chelsea",
+    "p3": [
+     38,
+     26,
+     36
+    ],
+    "xg": [
+     "1.5",
+     "1.5"
+    ],
+    "likely": "Likeliest score 1 – 1 (11%)",
+    "ctx": [
+     "Everton: 5th, 10 pts · last 5 (newest first): D D W W D",
+     "Chelsea: 6th, 10 pts · last 5 (newest first): L W D L W"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.0 goals",
+      "p": 80,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Everton to score",
+      "d": "1.3 goals a game this season",
+      "p": 79,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Chelsea to score",
+      "d": "2.5 goals a game this season",
+      "p": 77,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "No draw",
+      "d": "Either team wins",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Model total 3.0 goals",
+      "p": 64,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.5 and 1.5",
+      "p": 61,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Bookmaker line is 2.5",
+      "p": 58,
+      "o": 1.71
+     },
+     {
+      "fam": "win",
+      "n": "Everton win",
+      "d": "Bookmaker price with the margin removed: 33%",
+      "p": 38,
+      "o": 2.95
+     }
+    ]
+   },
+   {
+    "ko": "15:00",
+    "home": "Brentford",
+    "away": "Liverpool",
+    "p3": [
+     44,
+     26,
+     30
+    ],
+    "xg": [
+     "1.7",
+     "1.4"
+    ],
+    "likely": "Likeliest score 1 – 1 (11%)",
+    "ctx": [
+     "Brentford: 4th, 10 pts · last 5 (newest first): D D W W D",
+     "Liverpool: 9th, 9 pts · last 5 (newest first): D W W L W"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Brentford to score",
+      "d": "2.0 goals a game this season",
+      "p": 81,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.0 goals",
+      "p": 81,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Liverpool to score",
+      "d": "1.2 goals a game this season",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "No draw",
+      "d": "Either team wins",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Bookmaker line is 3.5",
+      "p": 64,
+      "o": 1.59
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.7 and 1.4",
+      "p": 60,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Model total 3.0 goals",
+      "p": 59,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Brentford win",
+      "d": "Bookmaker price with the margin removed: 40%",
+      "p": 44,
+      "o": 2.4
+     }
+    ]
+   },
+   {
+    "ko": "15:00",
+    "home": "Fulham",
+    "away": "Hull",
+    "p3": [
+     49,
+     25,
+     26
+    ],
+    "xg": [
+     "1.6",
+     "1.1"
+    ],
+    "likely": "Likeliest score 1 – 1 (12%)",
+    "ctx": [
+     "Fulham: 20th, 2 pts · last 5 (newest first): L D W D L",
+     "Hull: 8th, 9 pts · last 5 (newest first): D L D L D"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Fulham to score",
+      "d": "1.0 goals a game this season",
+      "p": 80,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 2.7 goals",
+      "p": 76,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "No draw",
+      "d": "Either team wins",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Model total 2.7 goals",
+      "p": 71,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Hull to score",
+      "d": "1.3 goals a game this season",
+      "p": 66,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.6 and 1.1",
+      "p": 53,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Bookmaker line is 2.5",
+      "p": 51,
+      "o": 1.74
+     },
+     {
+      "fam": "win",
+      "n": "Fulham win",
+      "d": "Bookmaker price with the margin removed: 58%",
+      "p": 49,
+      "o": 1.65
+     }
+    ]
+   },
+   {
+    "ko": "15:00",
+    "home": "Man City",
+    "away": "Ipswich",
+    "p3": [
+     77,
+     14,
+     9
+    ],
+    "xg": [
+     "2.9",
+     "0.9"
+    ],
+    "likely": "Likeliest score 2 – 0 (9%)",
+    "ctx": [
+     "Man City: 1st, 18 pts · last 5 (newest first): W W W W L",
+     "Ipswich: 10th, 9 pts · last 5 (newest first): L W L L W"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Man City to score",
+      "d": "2.7 goals a game this season",
+      "p": 94,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Man City or draw",
+      "d": "Double chance",
+      "p": 91,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.8 goals",
+      "p": 90,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Man City win",
+      "d": "Bookmaker price with the margin removed: 78%",
+      "p": 77,
+      "o": 1.24
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Model total 3.8 goals",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Ipswich to score",
+      "d": "1.5 goals a game this season",
+      "p": 61,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 2.9 and 0.9",
+      "p": 58,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 3.5 goals",
+      "d": "Bookmaker line is 3.5",
+      "p": 53,
+      "o": 1.8
+     }
+    ]
+   },
+   {
+    "ko": "17:30",
+    "home": "Newcastle",
+    "away": "Aston Villa",
+    "p3": [
+     44,
+     25,
+     31
+    ],
+    "xg": [
+     "1.8",
+     "1.4"
+    ],
+    "likely": "Likeliest score 1 – 1 (10%)",
+    "ctx": [
+     "Newcastle: 11th, 8 pts · last 5 (newest first): D W L W L",
+     "Aston Villa: 16th, 5 pts · last 5 (newest first): W W W D W"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Newcastle to score",
+      "d": "1.7 goals a game this season",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.2 goals",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Aston Villa to score",
+      "d": "1.0 goals a game this season",
+      "p": 76,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "No draw",
+      "d": "Either team wins",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.8 and 1.4",
+      "p": 64,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Model total 3.2 goals",
+      "p": 63,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Bookmaker line is 3.5",
+      "p": 60,
+      "o": 1.57
+     },
+     {
+      "fam": "win",
+      "n": "Newcastle win",
+      "d": "Bookmaker price with the margin removed: 41%",
+      "p": 45,
+      "o": 2.3
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "l1",
+  "name": "Ligue 1",
+  "matches": [
+   {
+    "ko": "16:15",
+    "home": "Strasbourg",
+    "away": "PSG",
+    "p3": [
+     21,
+     19,
+     60
+    ],
+    "xg": [
+     "1.3",
+     "2.4"
+    ],
+    "likely": "Likeliest score 1 – 2 (9%)",
+    "ctx": [
+     "Strasbourg: 12th, 7 pts · last 5 (newest first): W W D L L",
+     "PSG: 6th, 11 pts · last 5 (newest first): W W W W W"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "PSG to score",
+      "d": "1.8 goals a game this season",
+      "p": 91,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.7 goals",
+      "p": 88,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "No draw",
+      "d": "Either team wins",
+      "p": 81,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Strasbourg to score",
+      "d": "1.8 goals a game this season",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Model total 3.7 goals",
+      "p": 71,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.3 and 2.4",
+      "p": 67,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "PSG win",
+      "d": "Bookmaker price with the margin removed: 68%",
+      "p": 60,
+      "o": 1.4
+     },
+     {
+      "fam": "tot",
+      "n": "Over 3.5 goals",
+      "d": "Bookmaker line is 3.5",
+      "p": 51,
+      "o": 1.83
+     }
+    ]
+   },
+   {
+    "ko": "19:45",
+    "home": "Lille",
+    "away": "Brest",
+    "p3": [
+     49,
+     25,
+     26
+    ],
+    "xg": [
+     "1.7",
+     "1.2"
+    ],
+    "likely": "Likeliest score 1 – 1 (11%)",
+    "ctx": [
+     "Lille: 2nd, 13 pts · last 5 (newest first): W L W W L",
+     "Brest: 8th, 8 pts · last 5 (newest first): W L L D W"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Lille to score",
+      "d": "1.5 goals a game this season",
+      "p": 81,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 2.8 goals",
+      "p": 78,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "No draw",
+      "d": "Either team wins",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Brest to score",
+      "d": "2.0 goals a game this season",
+      "p": 69,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Model total 2.8 goals",
+      "p": 68,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.7 and 1.2",
+      "p": 56,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Bookmaker line is 2.5",
+      "p": 54,
+      "o": 1.71
+     },
+     {
+      "fam": "win",
+      "n": "Lille win",
+      "d": "Bookmaker price with the margin removed: 48%",
+      "p": 49,
+      "o": 2
+     }
+    ]
+   },
+   {
+    "ko": "19:45",
+    "home": "Troyes",
+    "away": "Lens",
+    "p3": [
+     25,
+     24,
+     51
+    ],
+    "xg": [
+     "1.3",
+     "1.9"
+    ],
+    "likely": "Likeliest score 1 – 1 (10%)",
+    "ctx": [
+     "Troyes: 17th, 4 pts · last 5 (newest first): L L L D L",
+     "Lens: 11th, 7 pts · last 5 (newest first): D L W W L"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Lens to score",
+      "d": "1.8 goals a game this season",
+      "p": 85,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.2 goals",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "No draw",
+      "d": "Either team wins",
+      "p": 76,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Troyes to score",
+      "d": "0.7 goals a game this season",
+      "p": 72,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Model total 3.2 goals",
+      "p": 62,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.3 and 1.9",
+      "p": 61,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Bookmaker line is 3.5",
+      "p": 60,
+      "o": 1.59
+     },
+     {
+      "fam": "win",
+      "n": "Lens win",
+      "d": "Bookmaker price with the margin removed: 50%",
+      "p": 52,
+      "o": 1.91
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "bl",
+  "name": "Bundesliga",
+  "matches": [
+   {
+    "ko": "14:30",
+    "home": "Union Berlin",
+    "away": "Dortmund",
+    "p3": [
+     17,
+     20,
+     63
+    ],
+    "xg": [
+     "1.1",
+     "2.3"
+    ],
+    "likely": "Likeliest score 1 – 2 (10%)",
+    "ctx": [
+     "Union Berlin: 16th, 4 pts · last 5 (newest first): L L L W W",
+     "Dortmund: 2nd, 13 pts · last 5 (newest first): W W W D L"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Dortmund to score",
+      "d": "2.2 goals a game this season",
+      "p": 90,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.4 goals",
+      "p": 86,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Dortmund or draw",
+      "d": "Double chance",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Union Berlin to score",
+      "d": "1.0 goals a game this season",
+      "p": 68,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Model total 3.4 goals",
+      "p": 67,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Dortmund win",
+      "d": "Bookmaker price with the margin removed: 60%",
+      "p": 64,
+      "o": 1.54
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.1 and 2.3",
+      "p": 61,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Bookmaker line is 3.5",
+      "p": 55,
+      "o": 1.65
+     }
+    ]
+   },
+   {
+    "ko": "14:30",
+    "home": "Hamburg",
+    "away": "Stuttgart",
+    "p3": [
+     28,
+     21,
+     51
+    ],
+    "xg": [
+     "1.5",
+     "2.1"
+    ],
+    "likely": "Likeliest score 1 – 2 (9%)",
+    "ctx": [
+     "Hamburg: 13th, 6 pts · last 5 (newest first): L L W W W",
+     "Stuttgart: 12th, 6 pts · last 5 (newest first): L W W W W"
+    ],
+    "noMkt": true,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Stuttgart to score",
+      "d": "1.6 goals a game this season",
+      "p": 87,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.6 goals",
+      "p": 87,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "No draw",
+      "d": "Either team wins",
+      "p": 79,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Hamburg to score",
+      "d": "1.0 goals a game this season",
+      "p": 78,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Model total 3.6 goals",
+      "p": 69,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.5 and 2.1",
+      "p": 68,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Model total 3.6 goals",
+      "p": 52,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Stuttgart win",
+      "d": "Model 51%",
+      "p": 51,
+      "o": null
+     }
+    ]
+   },
+   {
+    "ko": "14:30",
+    "home": "Schalke",
+    "away": "Mainz",
+    "p3": [
+     33,
+     26,
+     41
+    ],
+    "xg": [
+     "1.4",
+     "1.6"
+    ],
+    "likely": "Likeliest score 1 – 1 (11%)",
+    "ctx": [
+     "Schalke: 14th, 5 pts · last 5 (newest first): W D W W L",
+     "Mainz: 9th, 7 pts · last 5 (newest first): W L W W L"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Mainz to score",
+      "d": "2.6 goals a game this season",
+      "p": 80,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.0 goals",
+      "p": 80,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Schalke to score",
+      "d": "0.8 goals a game this season",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "No draw",
+      "d": "Either team wins",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Model total 3.0 goals",
+      "p": 65,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.4 and 1.6",
+      "p": 60,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Bookmaker line is 2.5",
+      "p": 58,
+      "o": 1.65
+     },
+     {
+      "fam": "win",
+      "n": "Mainz win",
+      "d": "Bookmaker price with the margin removed: 41%",
+      "p": 41,
+      "o": 2.25
+     }
+    ]
+   },
+   {
+    "ko": "14:30",
+    "home": "Elversberg",
+    "away": "Augsburg",
+    "p3": [
+     38,
+     25,
+     37
+    ],
+    "xg": [
+     "1.7",
+     "1.7"
+    ],
+    "likely": "Likeliest score 1 – 1 (9%)",
+    "ctx": [
+     "Elversberg: 10th, 7 pts · last 5 (newest first): L D L W L",
+     "Augsburg: 6th, 8 pts · last 5 (newest first): W D L D D"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.5 goals",
+      "p": 86,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Elversberg to score",
+      "d": "1.6 goals a game this season",
+      "p": 82,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Augsburg to score",
+      "d": "2.6 goals a game this season",
+      "p": 82,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "No draw",
+      "d": "Either team wins",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Model total 3.5 goals",
+      "p": 68,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 1.7 and 1.7",
+      "p": 68,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Bookmaker line is 3.5",
+      "p": 54,
+      "o": 1.71
+     },
+     {
+      "fam": "win",
+      "n": "Elversberg win",
+      "d": "Bookmaker price with the margin removed: 38%",
+      "p": 38,
+      "o": 2.4
+     }
+    ]
+   },
+   {
+    "ko": "14:30",
+    "home": "Werder Bremen",
+    "away": "Paderborn",
+    "p3": [
+     54,
+     23,
+     23
+    ],
+    "xg": [
+     "2.0",
+     "1.2"
+    ],
+    "likely": "Likeliest score 1 – 1 (10%)",
+    "ctx": [
+     "Werder Bremen: 7th, 8 pts · last 5 (newest first): L W D W D",
+     "Paderborn: 15th, 4 pts · last 5 (newest first): L L W W L"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Werder Bremen to score",
+      "d": "2.0 goals a game this season",
+      "p": 86,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 3.2 goals",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Werder Bremen or draw",
+      "d": "Double chance",
+      "p": 77,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Paderborn to score",
+      "d": "0.6 goals a game this season",
+      "p": 71,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Model total 3.2 goals",
+      "p": 62,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 2.0 and 1.2",
+      "p": 61,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Under 3.5 goals",
+      "d": "Bookmaker line is 3.5",
+      "p": 60,
+      "o": 1.65
+     },
+     {
+      "fam": "win",
+      "n": "Werder Bremen win",
+      "d": "Bookmaker price with the margin removed: 54%",
+      "p": 54,
+      "o": 1.71
+     }
+    ]
+   },
+   {
+    "ko": "17:30",
+    "home": "Bayern",
+    "away": "RB Leipzig",
+    "p3": [
+     70,
+     15,
+     15
+    ],
+    "xg": [
+     "3.1",
+     "1.4"
+    ],
+    "likely": "Likeliest score 3 – 1 (8%)",
+    "ctx": [
+     "Bayern: 3rd, 11 pts · last 5 (newest first): W W W D D",
+     "RB Leipzig: 5th, 9 pts · last 5 (newest first): L W L W W"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "tot",
+      "n": "Over 1.5 goals",
+      "d": "Model total 4.5 goals",
+      "p": 94,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Bayern or draw",
+      "d": "Double chance",
+      "p": 85,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Over 2.5 goals",
+      "d": "Model total 4.5 goals",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "RB Leipzig to score",
+      "d": "3.0 goals a game this season",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Both teams to score",
+      "d": "Model goals 3.1 and 1.4",
+      "p": 72,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Bayern win",
+      "d": "Bookmaker price with the margin removed: 78%",
+      "p": 70,
+      "o": 1.18
+     },
+     {
+      "fam": "tot",
+      "n": "Over 3.5 goals",
+      "d": "Model total 4.5 goals",
+      "p": 66,
+      "o": null
+     }
+    ]
+   }
+  ]
+ }
+];
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+var CH = ["Above the price","Close to fair","Priced short","No odds"];
+function evRow(e, matchLabel) {
+  var be = e.o ? 100 / e.o : null;
+  var chipCls = "none", chipTxt = CH[3];
+  if (be !== null) {
+    var diff = e.p - be;
+    if (diff >= 3) { chipCls = "above"; chipTxt = CH[0]; }
+    else if (diff >= -3) { chipCls = "fair"; chipTxt = CH[1]; }
+    else { chipCls = "short"; chipTxt = CH[2]; }
+  }
+  return '<div class="ev">' +
+    '<span class="ev-name">' + esc(e.n) + '<small>' + (matchLabel ? esc(matchLabel) + ' · ' : '') + esc(e.d) + '</small></span>' +
+    '<span class="meter"><span class="track"><span class="fill" style="width:' + e.p + '%"></span>' +
+      (be !== null ? '<span class="tick" style="left:' + be.toFixed(1) + '%" title="Break-even ' + be.toFixed(0) + '%"></span>' : '') +
+    '</span><span class="pct">' + e.p + '%</span></span>' +
+    '<span class="odds">' + (e.o ? e.o.toFixed(2) : '–') + '</span>' +
+    '<span class="chip ' + chipCls + '">' + chipTxt + '</span></div>';
+}
+var COLS = '<div class="ev cols label"><span>Event, most likely first</span><span>My estimate</span><span style="text-align:right">Odds</span><span style="text-align:right">Against the price</span></div>';
+
+function matchHtml(m) {
+  var evs = m.events.slice().sort(function (a, b) { return b.p - a.p; });
+  return '<article class="match">' +
+    '<div class="match-head">' +
+      '<div class="mh-top"><span class="label mono">' + m.ko + ' UK time</span><span class="label">' + esc(m.likely) + '</span>' + (m.noMkt ? '<span class="tag-nm">No price</span>' : '') + '</div>' +
+      '<div class="mh-teams"><h3>' + esc(m.home) + '<span>v</span>' + esc(m.away) + '</h3><span class="label">Model goals ' + m.xg[0] + ' – ' + m.xg[1] + '</span></div>' +
+      '<div class="ctx"><span>' + esc(m.ctx[0]) + '</span><span>' + esc(m.ctx[1]) + '</span></div>' +
+      '<div><div class="bar" role="img" aria-label="' + esc(m.home + ' ' + m.p3[0] + '%, draw ' + m.p3[1] + '%, ' + m.away + ' ' + m.p3[2] + '%') + '">' +
+        '<div class="seg h" style="flex:' + m.p3[0] + '">' + m.p3[0] + '%</div>' +
+        '<div class="seg d" style="flex:' + m.p3[1] + '">' + m.p3[1] + '%</div>' +
+        '<div class="seg a" style="flex:' + m.p3[2] + '">' + m.p3[2] + '%</div></div>' +
+        '<div class="bar-key"><span>Home win</span><span>Draw</span><span>Away win</span></div></div>' +
+    '</div>' + COLS + evs.map(function (e) { return evRow(e, null); }).join("") +
+    '</article>';
+}
+
+function panelHtml(lg) {
+  var all = [];
+  lg.matches.forEach(function (m) {
+    m.events.forEach(function (e) { all.push({ n: e.n, d: e.d, p: e.p, o: e.o, match: m.home + " v " + m.away }); });
+  });
+  all.sort(function (a, b) { return b.p - a.p; });
+  var top = all.filter(function (e) { return e.p < 96; }).slice(0, 8);
+  return '<section class="board">' +
+    '<div class="sec-title"><h2>Most likely events: ' + esc(lg.name) + '</h2><span class="label">' + lg.matches.length + ' matches</span></div>' +
+    COLS.replace("Event, most likely first", "Event") +
+    top.map(function (e) { return evRow(e, e.match); }).join("") +
+    '<div class="legend"><span class="l-fill">My estimated chance</span><span class="l-tick">Break-even chance at the quoted odds</span></div>' +
+    '</section>' +
+    '<div class="matches">' + lg.matches.map(matchHtml).join("") + '</div>';
+}
+
+var tabsEl = document.getElementById("tabs");
+var panelsEl = document.getElementById("panels");
+tabsEl.innerHTML = LEAGUES.map(function (lg) {
+  return '<button class="tab" role="tab" type="button" id="tab-' + lg.id + '" aria-controls="panel-' + lg.id + '" data-id="' + lg.id + '">' + esc(lg.name) + '<small>' + lg.matches.length + '</small></button>';
+}).join("");
+panelsEl.innerHTML = LEAGUES.map(function (lg) {
+  return '<div class="panel" role="tabpanel" id="panel-' + lg.id + '" aria-labelledby="tab-' + lg.id + '" hidden>' + panelHtml(lg) + '</div>';
+}).join("");
+
+function show(id) {
+  LEAGUES.forEach(function (lg) {
+    var on = lg.id === id;
+    document.getElementById("panel-" + lg.id).hidden = !on;
+    document.getElementById("tab-" + lg.id).setAttribute("aria-selected", on ? "true" : "false");
+  });
+  try { localStorage.setItem("fiveLeagueTab", id); } catch (e) {}
+}
+tabsEl.addEventListener("click", function (ev) {
+  var b = ev.target.closest(".tab");
+  if (b) show(b.getAttribute("data-id"));
+});
+var start = LEAGUES[0].id;
+try { var s = localStorage.getItem("fiveLeagueTab"); if (s && document.getElementById("panel-" + s)) start = s; } catch (e) {}
+show(start);
+
+(function () {
+  var btn = document.getElementById("themeBtn");
+  btn.addEventListener("click", function () {
+    var root = document.documentElement;
+    var cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+})();
+</script>

@@ -1,0 +1,1959 @@
+<title>Tableau des paris : 5 championnats, 17 octobre</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a fixture-board summary strip on top, then one detailed card per match, ordered by kick-off. */
+:root {
+  --bg: #F1F0EC;
+  --surface: #FFFFFF;
+  --surface-2: #E6E4DC;
+  --ink: #1A1A1F;
+  --ink-2: #57565E;
+  --line: #D2CFC4;
+  --accent: #1E6B4B;
+  --accent-ink: #FFFFFF;
+  --seg-h: #1F4E79;
+  --seg-d: #8A8A92;
+  --seg-a: #B9521A;
+  --seg-text: #FFFFFF;
+  --warn: #7A5200;
+  --warn-bg: #FBF0D5;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131316; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+    --line: #36363E; --accent: #5FC495; --accent-ink: #08241A;
+    --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+    --warn: #F0C46A; --warn-bg: #2E2410;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131316; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+  --line: #36363E; --accent: #5FC495; --accent-ink: #08241A;
+  --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+  --warn: #F0C46A; --warn-bg: #2E2410;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 28px 56px; }
+.wrap { max-width: 1060px; margin-inline: auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.05; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { font-size: clamp(38px, 8vw, 64px); letter-spacing: .005em; }
+.sub { color: var(--ink-2); max-width: 62ch; }
+
+.board { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.board-head h2 { font-size: 26px; }
+.row { display: grid; grid-template-columns: 64px minmax(0, 1.6fr) 96px minmax(0, 1fr) 96px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row.cols { padding-block: 8px; background: var(--surface-2); }
+.row .ko { font-family: var(--f-mono); font-size: 14px; }
+.row .fx { font-family: var(--f-display); font-weight: 600; font-size: 21px; line-height: 1.1; min-width: 0; }
+.row .fx span { color: var(--ink-2); font-weight: 600; font-size: 15px; padding-inline: 4px; }
+.score { font-family: var(--f-display); font-weight: 700; font-size: 30px; letter-spacing: .02em; text-align: center; background: var(--ink); color: var(--bg); border-radius: 6px; padding: 2px 0; }
+.pickcell { font-weight: 600; min-width: 0; }
+.conf { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; }
+.conf.high { color: var(--accent); }
+.conf.med { color: var(--seg-a); }
+.conf.low { color: var(--ink-2); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.team { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.team.away { text-align: right; align-items: flex-end; }
+.team h3 { font-size: 28px; overflow-wrap: anywhere; }
+.team .meta { font-size: 12.5px; color: var(--ink-2); }
+.big { font-family: var(--f-display); font-weight: 700; font-size: 44px; line-height: 1; text-align: center; white-space: nowrap; }
+.big small { display: block; font-family: var(--f-body); font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+.bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.seg { display: flex; align-items: center; justify-content: center; color: var(--seg-text); font-family: var(--f-mono); font-size: 13px; min-width: 0; }
+.seg.h { background: var(--seg-h); } .seg.d { background: var(--seg-d); } .seg.a { background: var(--seg-a); }
+.bar-key { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-2); margin-top: 5px; }
+.verdict { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.verdict .pill { background: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 4px 12px; border-radius: 99px; font-size: 14px; }
+ul.why { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.news { font-size: 13.5px; border-top: 1px dashed var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.news.unconfirmed { color: var(--ink-2); }
+.risk { font-size: 13.5px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 9px 12px; }
+.others { font-size: 13px; color: var(--ink-2); }
+
+.notes { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+.notes h2 { font-size: 24px; margin-bottom: 8px; }
+.notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.theme-btn { font: inherit; font-size: 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; cursor: pointer; }
+.top-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .row { grid-template-columns: 56px minmax(0, 1fr) 72px; grid-template-areas: "ko fx score" "ko pick conf"; row-gap: 6px; }
+  .row.cols { display: none; }
+  .row .ko { grid-area: ko; align-self: start; padding-top: 4px; }
+  .row .fx { grid-area: fx; }
+  .row .score { grid-area: score; }
+  .row .pickcell { grid-area: pick; font-size: 14px; }
+  .row .conf { grid-area: conf; }
+  .teams { grid-template-columns: 1fr 1fr; grid-template-areas: "h a" "s s"; }
+  .teams .big { grid-area: s; order: 3; }
+  .team.home { grid-area: h; } .team.away { grid-area: a; }
+}
+@media (prefers-reduced-motion: no-preference) { .seg { transition: flex-basis .3s; } }
+</style>
+
+<style>
+.ev { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.3fr) 64px 118px; gap: 14px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.ev:last-child { border-bottom: 0; }
+.ev.cols { padding-block: 8px; background: var(--surface-2); }
+.ev-name { min-width: 0; font-weight: 500; }
+.ev-name small { display: block; color: var(--ink-2); font-size: 12.5px; font-weight: 400; }
+.meter { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.track { position: relative; flex: 1; height: 12px; background: var(--surface-2); border-radius: 6px; min-width: 0; }
+.fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 6px; }
+.tick { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); border-radius: 1px; }
+.pct { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 14px; width: 44px; text-align: right; }
+.odds { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 14px; text-align: right; color: var(--ink-2); }
+.chip { font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; justify-self: end; white-space: nowrap; }
+.chip.fair, .chip.above { color: var(--accent); }
+.chip.above { background: var(--surface-2); }
+.chip.short { color: var(--seg-a); }
+.chip.none { color: var(--ink-2); }
+.match { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.match-head { padding: 18px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid var(--line); }
+.mh-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.mh-teams { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.mh-teams h3 { font-size: 30px; }
+.mh-teams h3 span { color: var(--ink-2); font-size: 20px; padding-inline: 6px; }
+.legend { font-size: 12.5px; color: var(--ink-2); padding: 10px 16px; border-top: 1px solid var(--line); display: flex; gap: 16px; flex-wrap: wrap; }
+.legend span::before { content: ""; display: inline-block; vertical-align: middle; margin-right: 6px; }
+.legend .l-fill::before { width: 18px; height: 8px; background: var(--accent); border-radius: 4px; }
+.legend .l-tick::before { width: 2px; height: 14px; background: var(--ink); }
+.matches { display: flex; flex-direction: column; gap: 22px; }
+.callout { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 12px 16px; font-size: 14px; }
+.callouts { display: flex; flex-direction: column; gap: 10px; }
+.sec-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.sec-title h2 { font-size: 26px; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--bg); padding-block: 8px; }
+.tab { font: inherit; font-weight: 600; font-size: 14px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 99px; padding: 7px 14px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tab small { font-weight: 500; opacity: .75; margin-left: 4px; }
+.panel { display: flex; flex-direction: column; gap: 22px; }
+@media (max-width: 720px) {
+  .ev { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name chip" "meter odds"; row-gap: 6px; }
+  .ev.cols { display: none; }
+  .ev .ev-name { grid-area: name; } .ev .meter { grid-area: meter; } .ev .odds { grid-area: odds; } .ev .chip { grid-area: chip; }
+}
+</style>
+<style>
+.ctx { font-size: 12.5px; color: var(--ink-2); display: flex; flex-direction: column; gap: 2px; }
+.tag-nm { font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--warn); background: var(--warn-bg); border-radius: 99px; padding: 2px 8px; }
+</style>
+<div class="wrap">
+  <header>
+    <div class="top-line">
+      <span class="label">Samedi 17 octobre 2026 · 21 matchs dans 5 championnats · Heures de coup d'envoi du Royaume-Uni (BST), identiques à l'heure de Kinshasa</span>
+      <button class="theme-btn" id="themeBtn" type="button">Changer de thème</button>
+    </div>
+    <h1>Tableau des paris : 5 championnats</h1>
+    <p class="sub">Les événements les plus probables dans chacun des matchs du jour de Liga, Serie A, Premier League, Ligue 1 et Bundesliga. Chaque probabilité est ma propre estimation : les cotes d'un bookmaker (un seul site, via ESPN) converties en modèle de buts, croisées avec les buts marqués et encaissés de chaque équipe cette saison. Une probabilité élevée ne fait pas un bon pari : les lignes qui ont une cote affichent donc aussi le seuil de rentabilité.</p>
+  </header>
+
+  <div class="callouts">
+    <div class="callout"><strong>Aucune information sur les blessés ni sur les compositions.</strong> Mes recherches n'ont trouvé aucune actualité d'équipe récente pour ces 21 matchs : rien de tout cela n'est dans les chiffres. La rotation et les absences peuvent beaucoup déplacer une probabilité, surtout pour les gros favoris. Vérifiez les compositions environ une heure avant le coup d'envoi.</div>
+    <div class="callout"><strong>Pas de marchés de corners ni de cartons cette fois.</strong> Je n'avais aucune moyenne de corners ou de cartons pour ces matchs : le tableau couvre donc les buts, « équipe qui marque », « les deux équipes marquent », la double chance et les résultats.</div>
+    <div class="callout"><strong>Seulement 5 matchs de Premier League aujourd'hui.</strong> ESPN indique cinq matchs de Premier League le 17 octobre (Everton, Brentford, Fulham, Man City et Newcastle à domicile). Le reste de la journée n'était pas au programme du jour. Les horaires sont ceux d'ESPN ; un autre site place Betis - Barcelone 30 minutes plus tard (18 h 30 en Espagne, 17 h 30 au Royaume-Uni).</div>
+    <div class="callout"><strong>Hambourg - Stuttgart n'a pas de cote de bookmaker</strong> sur la source : il est évalué uniquement avec les buts de la saison et reste moins fiable que les 20 autres.</div>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label="Championnat" id="tabs"></nav>
+  <div id="panels"></div>
+
+  <section class="notes" aria-labelledby="notes-h">
+    <div>
+      <h2 id="notes-h">Comment lire les chiffres</h2>
+      <ul>
+        <li>La barre est ma probabilité estimée. Le repère noir est la probabilité de rentabilité à la cote (1 divisé par la cote). Si la barre s'arrête avant le repère, la cote est plus courte que mon estimation.</li>
+        <li>« Proche du juste prix » signifie que mon estimation est à moins de 3 points du seuil de rentabilité. « Cote trop courte » : elle est plus basse. « Au-dessus de la cote » : elle est supérieure d'au moins 3 points. Les cotes incluent une marge du bookmaker, donc la plupart des lignes sont trop courtes.</li>
+        <li>Seuls les résultats et la ligne de buts affichée ont une cote. Les lignes sans cote sont de simples estimations.</li>
+        <li>Les « buts du modèle » sont les buts que chaque équipe devrait marquer. Ils viennent à 70 % des cotes du bookmaker et à 30 % des moyennes de buts marqués et encaissés de la saison ; un match sans cote repose donc entièrement sur les moyennes de la saison. Les probabilités de victoire et de nul utilisent directement le même mélange 70/30.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Limites</h2>
+      <ul>
+        <li>Les équipes ont joué entre 5 et 9 matchs de championnat : les moyennes de la saison sont instables. Un écart de quelques points est du bruit.</li>
+        <li>Le modèle de buts traite les buts des deux équipes comme indépendants. Il sous-estime un peu les matchs nuls et les 0-0 ou 1-1.</li>
+        <li>Combiner plusieurs événements dans un seul pari multiplie le risque, et aucun résultat n'est garanti. Ne misez que de l'argent que vous pouvez vous permettre de perdre.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Sources</h2>
+      <ul>
+        <li><a href="https://www.espn.com/soccer/schedule/_/date/20261017">Programme football ESPN, 17 octobre 2026</a> (matchs, horaires, cotes DraftKings, classements et 5 derniers résultats pour les 21 matchs)</li>
+        <li><a href="https://www.sport-flash.com/sports/football/es/calendar/2026-10-17/laliga-2026-2027">Sport-Flash</a> et <a href="https://ligue1.com/fr/articles/l1_article_5797-">Ligue 1</a> (vérification croisée des horaires)</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+var LEAGUES = [
+ {
+  "id": "liga",
+  "name": "Liga",
+  "matches": [
+   {
+    "ko": "13:00",
+    "home": "Espanyol",
+    "away": "Atlético Madrid",
+    "p3": [
+     22,
+     24,
+     54
+    ],
+    "xg": [
+     "1,1",
+     "1,8"
+    ],
+    "likely": "Score le plus probable 1 – 1 (11 %)",
+    "ctx": [
+     "Espanyol : 12e, 8 pts · 5 derniers (du plus récent) : N V D D N",
+     "Atlético Madrid : 2e, 19 pts · 5 derniers (du plus récent) : V V V V V"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Atlético Madrid marque",
+      "d": "2,3 buts par match cette saison",
+      "p": 84,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 2,9 buts",
+      "p": 79,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Atlético Madrid ou nul",
+      "d": "Double chance",
+      "p": 78,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Espanyol marque",
+      "d": "1,4 buts par match cette saison",
+      "p": 66,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "Total du modèle : 2,9 buts",
+      "p": 66,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "La ligne du bookmaker est 2,5",
+      "p": 56,
+      "o": 1.67
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,1 et 1,8",
+      "p": 56,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Atlético Madrid",
+      "d": "Cote du bookmaker sans la marge : 57 %",
+      "p": 55,
+      "o": 1.67
+     }
+    ]
+   },
+   {
+    "ko": "15:15",
+    "home": "Villarreal",
+    "away": "Elche",
+    "p3": [
+     64,
+     19,
+     17
+    ],
+    "xg": [
+     "2,4",
+     "1,2"
+    ],
+    "likely": "Score le plus probable 2 – 1 (10 %)",
+    "ctx": [
+     "Villarreal : 11e, 8 pts · 5 derniers (du plus récent) : D V V D V",
+     "Elche : 18e, 6 pts · 5 derniers (du plus récent) : D N D V N"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Villarreal marque",
+      "d": "1,6 buts par match cette saison",
+      "p": 91,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,5 buts",
+      "p": 87,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Villarreal ou nul",
+      "d": "Double chance",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Elche marque",
+      "d": "1,4 buts par match cette saison",
+      "p": 69,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "Total du modèle : 3,5 buts",
+      "p": 69,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Villarreal",
+      "d": "Cote du bookmaker sans la marge : 67 %",
+      "p": 64,
+      "o": 1.42
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 2,4 et 1,2",
+      "p": 62,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "La ligne du bookmaker est 3,5",
+      "p": 53,
+      "o": 1.8
+     }
+    ]
+   },
+   {
+    "ko": "17:00",
+    "home": "Betis",
+    "away": "Barcelone",
+    "p3": [
+     17,
+     18,
+     65
+    ],
+    "xg": [
+     "1,4",
+     "2,7"
+    ],
+    "likely": "Score le plus probable 1 – 2 (8 %)",
+    "ctx": [
+     "Betis : 3e, 19 pts · 5 derniers (du plus récent) : V V N V V",
+     "Barcelone : 1er, 24 pts · 5 derniers (du plus récent) : V V V V V"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Barcelone marque",
+      "d": "4,3 buts par match cette saison",
+      "p": 93,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 4,1 buts",
+      "p": 91,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Barcelone ou nul",
+      "d": "Double chance",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "Total du modèle : 4,1 buts",
+      "p": 77,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Betis marque",
+      "d": "1,8 buts par match cette saison",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,4 et 2,7",
+      "p": 70,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Barcelone",
+      "d": "Cote du bookmaker sans la marge : 66 %",
+      "p": 65,
+      "o": 1.45
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 3,5 buts",
+      "d": "Total du modèle : 4,1 buts",
+      "p": 58,
+      "o": null
+     }
+    ]
+   },
+   {
+    "ko": "20:00",
+    "home": "Valencia",
+    "away": "Athletic Club",
+    "p3": [
+     28,
+     29,
+     43
+    ],
+    "xg": [
+     "1,0",
+     "1,3"
+    ],
+    "likely": "Score le plus probable 1 – 1 (13 %)",
+    "ctx": [
+     "Valencia : 19e, 5 pts · 5 derniers (du plus récent) : D D V D N",
+     "Athletic Club : 10e, 8 pts · 5 derniers (du plus récent) : D V V N N"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "Total du modèle : 2,4 buts",
+      "p": 78,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Athletic Club marque",
+      "d": "1,2 buts par match cette saison",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Athletic Club ou nul",
+      "d": "Double chance",
+      "p": 72,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 2,4 buts",
+      "p": 69,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Valencia marque",
+      "d": "0,8 buts par match cette saison",
+      "p": 65,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 2,5 buts",
+      "d": "La ligne du bookmaker est 2,5",
+      "p": 57,
+      "o": 1.74
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent : non",
+      "d": "Buts du modèle : 1,0 et 1,3",
+      "p": 52,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Athletic Club",
+      "d": "Cote du bookmaker sans la marge : 41 %",
+      "p": 43,
+      "o": 2.35
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "seriea",
+  "name": "Serie A",
+  "matches": [
+   {
+    "ko": "14:00",
+    "home": "Venezia",
+    "away": "Naples",
+    "p3": [
+     20,
+     23,
+     57
+    ],
+    "xg": [
+     "1,0",
+     "1,9"
+    ],
+    "likely": "Score le plus probable 1 – 1 (10 %)",
+    "ctx": [
+     "Venezia : 20e, 0 pts · 5 derniers (du plus récent) : D D D D D",
+     "Naples : 9e, 10 pts · 5 derniers (du plus récent) : D V N V D"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Naples marque",
+      "d": "1,7 buts par match cette saison",
+      "p": 85,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,0 buts",
+      "p": 80,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Naples ou nul",
+      "d": "Double chance",
+      "p": 80,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Venezia marque",
+      "d": "0,8 buts par match cette saison",
+      "p": 65,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "Total du modèle : 3,0 buts",
+      "p": 65,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Naples",
+      "d": "Cote du bookmaker sans la marge : 55 %",
+      "p": 58,
+      "o": 1.69
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "La ligne du bookmaker est 2,5",
+      "p": 57,
+      "o": 1.69
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,0 et 1,9",
+      "p": 55,
+      "o": null
+     }
+    ]
+   },
+   {
+    "ko": "17:00",
+    "home": "Bologna",
+    "away": "Inter",
+    "p3": [
+     19,
+     23,
+     58
+    ],
+    "xg": [
+     "1,1",
+     "2,0"
+    ],
+    "likely": "Score le plus probable 1 – 1 (10 %)",
+    "ctx": [
+     "Bologna : 14e, 5 pts · 5 derniers (du plus récent) : D N D N V",
+     "Inter : 1er, 16 pts · 5 derniers (du plus récent) : V N V V D"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Inter marque",
+      "d": "3,0 buts par match cette saison",
+      "p": 86,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,0 buts",
+      "p": 81,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Inter ou nul",
+      "d": "Double chance",
+      "p": 81,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Bologna marque",
+      "d": "0,8 buts par match cette saison",
+      "p": 65,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "Total du modèle : 3,0 buts",
+      "p": 64,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "La ligne du bookmaker est 2,5",
+      "p": 59,
+      "o": 1.59
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Inter",
+      "d": "Cote du bookmaker sans la marge : 61 %",
+      "p": 59,
+      "o": 1.53
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,1 et 2,0",
+      "p": 56,
+      "o": null
+     }
+    ]
+   },
+   {
+    "ko": "19:45",
+    "home": "Roma",
+    "away": "Genoa",
+    "p3": [
+     65,
+     21,
+     14
+    ],
+    "xg": [
+     "2,0",
+     "0,8"
+    ],
+    "likely": "Score le plus probable 2 – 0 (12 %)",
+    "ctx": [
+     "Roma : 3e, 14 pts · 5 derniers (du plus récent) : N V N N D",
+     "Genoa : 17e, 4 pts · 5 derniers (du plus récent) : N V D D V"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Roma marque",
+      "d": "2,3 buts par match cette saison",
+      "p": 87,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Roma ou nul",
+      "d": "Double chance",
+      "p": 86,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 2,8 buts",
+      "p": 77,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "Total du modèle : 2,8 buts",
+      "p": 69,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Roma",
+      "d": "Cote du bookmaker sans la marge : 59 %",
+      "p": 65,
+      "o": 1.56
+     },
+     {
+      "fam": "ts",
+      "n": "Genoa marque",
+      "d": "0,8 buts par match cette saison",
+      "p": 55,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "La ligne du bookmaker est 2,5",
+      "p": 54,
+      "o": 1.83
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent : non",
+      "d": "Buts du modèle : 2,0 et 0,8",
+      "p": 52,
+      "o": null
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "pl",
+  "name": "Premier League",
+  "matches": [
+   {
+    "ko": "12:30",
+    "home": "Everton",
+    "away": "Chelsea",
+    "p3": [
+     38,
+     26,
+     36
+    ],
+    "xg": [
+     "1,5",
+     "1,5"
+    ],
+    "likely": "Score le plus probable 1 – 1 (11 %)",
+    "ctx": [
+     "Everton : 5e, 10 pts · 5 derniers (du plus récent) : N N V V N",
+     "Chelsea : 6e, 10 pts · 5 derniers (du plus récent) : D V N D V"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,0 buts",
+      "p": 80,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Everton marque",
+      "d": "1,3 buts par match cette saison",
+      "p": 79,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Chelsea marque",
+      "d": "2,5 buts par match cette saison",
+      "p": 77,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Pas de match nul",
+      "d": "L'une des deux équipes gagne",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "Total du modèle : 3,0 buts",
+      "p": 64,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,5 et 1,5",
+      "p": 61,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "La ligne du bookmaker est 2,5",
+      "p": 58,
+      "o": 1.71
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Everton",
+      "d": "Cote du bookmaker sans la marge : 33 %",
+      "p": 38,
+      "o": 2.95
+     }
+    ]
+   },
+   {
+    "ko": "15:00",
+    "home": "Brentford",
+    "away": "Liverpool",
+    "p3": [
+     44,
+     26,
+     30
+    ],
+    "xg": [
+     "1,7",
+     "1,4"
+    ],
+    "likely": "Score le plus probable 1 – 1 (11 %)",
+    "ctx": [
+     "Brentford : 4e, 10 pts · 5 derniers (du plus récent) : N N V V N",
+     "Liverpool : 9e, 9 pts · 5 derniers (du plus récent) : N V V D V"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Brentford marque",
+      "d": "2,0 buts par match cette saison",
+      "p": 81,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,0 buts",
+      "p": 81,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Liverpool marque",
+      "d": "1,2 buts par match cette saison",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Pas de match nul",
+      "d": "L'une des deux équipes gagne",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "La ligne du bookmaker est 3,5",
+      "p": 64,
+      "o": 1.59
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,7 et 1,4",
+      "p": 60,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "Total du modèle : 3,0 buts",
+      "p": 59,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Brentford",
+      "d": "Cote du bookmaker sans la marge : 40 %",
+      "p": 44,
+      "o": 2.4
+     }
+    ]
+   },
+   {
+    "ko": "15:00",
+    "home": "Fulham",
+    "away": "Hull",
+    "p3": [
+     49,
+     25,
+     26
+    ],
+    "xg": [
+     "1,6",
+     "1,1"
+    ],
+    "likely": "Score le plus probable 1 – 1 (12 %)",
+    "ctx": [
+     "Fulham : 20e, 2 pts · 5 derniers (du plus récent) : D N V N D",
+     "Hull : 8e, 9 pts · 5 derniers (du plus récent) : N D N D N"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Fulham marque",
+      "d": "1,0 buts par match cette saison",
+      "p": 80,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 2,7 buts",
+      "p": 76,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Pas de match nul",
+      "d": "L'une des deux équipes gagne",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "Total du modèle : 2,7 buts",
+      "p": 71,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Hull marque",
+      "d": "1,3 buts par match cette saison",
+      "p": 66,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,6 et 1,1",
+      "p": 53,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "La ligne du bookmaker est 2,5",
+      "p": 51,
+      "o": 1.74
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Fulham",
+      "d": "Cote du bookmaker sans la marge : 58 %",
+      "p": 49,
+      "o": 1.65
+     }
+    ]
+   },
+   {
+    "ko": "15:00",
+    "home": "Man City",
+    "away": "Ipswich",
+    "p3": [
+     77,
+     14,
+     9
+    ],
+    "xg": [
+     "2,9",
+     "0,9"
+    ],
+    "likely": "Score le plus probable 2 – 0 (9 %)",
+    "ctx": [
+     "Man City : 1er, 18 pts · 5 derniers (du plus récent) : V V V V D",
+     "Ipswich : 10e, 9 pts · 5 derniers (du plus récent) : D V D D V"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Man City marque",
+      "d": "2,7 buts par match cette saison",
+      "p": 94,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Man City ou nul",
+      "d": "Double chance",
+      "p": 91,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,8 buts",
+      "p": 90,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Man City",
+      "d": "Cote du bookmaker sans la marge : 78 %",
+      "p": 77,
+      "o": 1.24
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "Total du modèle : 3,8 buts",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Ipswich marque",
+      "d": "1,5 buts par match cette saison",
+      "p": 61,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 2,9 et 0,9",
+      "p": 58,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 3,5 buts",
+      "d": "La ligne du bookmaker est 3,5",
+      "p": 53,
+      "o": 1.8
+     }
+    ]
+   },
+   {
+    "ko": "17:30",
+    "home": "Newcastle",
+    "away": "Aston Villa",
+    "p3": [
+     44,
+     25,
+     31
+    ],
+    "xg": [
+     "1,8",
+     "1,4"
+    ],
+    "likely": "Score le plus probable 1 – 1 (10 %)",
+    "ctx": [
+     "Newcastle : 11e, 8 pts · 5 derniers (du plus récent) : N V D V D",
+     "Aston Villa : 16e, 5 pts · 5 derniers (du plus récent) : V V V N V"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Newcastle marque",
+      "d": "1,7 buts par match cette saison",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,2 buts",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Aston Villa marque",
+      "d": "1,0 buts par match cette saison",
+      "p": 76,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Pas de match nul",
+      "d": "L'une des deux équipes gagne",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,8 et 1,4",
+      "p": 64,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "Total du modèle : 3,2 buts",
+      "p": 63,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "La ligne du bookmaker est 3,5",
+      "p": 60,
+      "o": 1.57
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Newcastle",
+      "d": "Cote du bookmaker sans la marge : 41 %",
+      "p": 45,
+      "o": 2.3
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "l1",
+  "name": "Ligue 1",
+  "matches": [
+   {
+    "ko": "16:15",
+    "home": "Strasbourg",
+    "away": "PSG",
+    "p3": [
+     21,
+     19,
+     60
+    ],
+    "xg": [
+     "1,3",
+     "2,4"
+    ],
+    "likely": "Score le plus probable 1 – 2 (9 %)",
+    "ctx": [
+     "Strasbourg : 12e, 7 pts · 5 derniers (du plus récent) : V V N D D",
+     "PSG : 6e, 11 pts · 5 derniers (du plus récent) : V V V V V"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "PSG marque",
+      "d": "1,8 buts par match cette saison",
+      "p": 91,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,7 buts",
+      "p": 88,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Pas de match nul",
+      "d": "L'une des deux équipes gagne",
+      "p": 81,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Strasbourg marque",
+      "d": "1,8 buts par match cette saison",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "Total du modèle : 3,7 buts",
+      "p": 71,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,3 et 2,4",
+      "p": 67,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de PSG",
+      "d": "Cote du bookmaker sans la marge : 68 %",
+      "p": 60,
+      "o": 1.4
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 3,5 buts",
+      "d": "La ligne du bookmaker est 3,5",
+      "p": 51,
+      "o": 1.83
+     }
+    ]
+   },
+   {
+    "ko": "19:45",
+    "home": "Lille",
+    "away": "Brest",
+    "p3": [
+     49,
+     25,
+     26
+    ],
+    "xg": [
+     "1,7",
+     "1,2"
+    ],
+    "likely": "Score le plus probable 1 – 1 (11 %)",
+    "ctx": [
+     "Lille : 2e, 13 pts · 5 derniers (du plus récent) : V D V V D",
+     "Brest : 8e, 8 pts · 5 derniers (du plus récent) : V D D N V"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Lille marque",
+      "d": "1,5 buts par match cette saison",
+      "p": 81,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 2,8 buts",
+      "p": 78,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Pas de match nul",
+      "d": "L'une des deux équipes gagne",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Brest marque",
+      "d": "2,0 buts par match cette saison",
+      "p": 69,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "Total du modèle : 2,8 buts",
+      "p": 68,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,7 et 1,2",
+      "p": 56,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "La ligne du bookmaker est 2,5",
+      "p": 54,
+      "o": 1.71
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Lille",
+      "d": "Cote du bookmaker sans la marge : 48 %",
+      "p": 49,
+      "o": 2
+     }
+    ]
+   },
+   {
+    "ko": "19:45",
+    "home": "Troyes",
+    "away": "Lens",
+    "p3": [
+     25,
+     24,
+     51
+    ],
+    "xg": [
+     "1,3",
+     "1,9"
+    ],
+    "likely": "Score le plus probable 1 – 1 (10 %)",
+    "ctx": [
+     "Troyes : 17e, 4 pts · 5 derniers (du plus récent) : D D D N D",
+     "Lens : 11e, 7 pts · 5 derniers (du plus récent) : N D V V D"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Lens marque",
+      "d": "1,8 buts par match cette saison",
+      "p": 85,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,2 buts",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Pas de match nul",
+      "d": "L'une des deux équipes gagne",
+      "p": 76,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Troyes marque",
+      "d": "0,7 buts par match cette saison",
+      "p": 72,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "Total du modèle : 3,2 buts",
+      "p": 62,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,3 et 1,9",
+      "p": 61,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "La ligne du bookmaker est 3,5",
+      "p": 60,
+      "o": 1.59
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Lens",
+      "d": "Cote du bookmaker sans la marge : 50 %",
+      "p": 52,
+      "o": 1.91
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "id": "bl",
+  "name": "Bundesliga",
+  "matches": [
+   {
+    "ko": "14:30",
+    "home": "Union Berlin",
+    "away": "Dortmund",
+    "p3": [
+     17,
+     20,
+     63
+    ],
+    "xg": [
+     "1,1",
+     "2,3"
+    ],
+    "likely": "Score le plus probable 1 – 2 (10 %)",
+    "ctx": [
+     "Union Berlin : 16e, 4 pts · 5 derniers (du plus récent) : D D D V V",
+     "Dortmund : 2e, 13 pts · 5 derniers (du plus récent) : V V V N D"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Dortmund marque",
+      "d": "2,2 buts par match cette saison",
+      "p": 90,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,4 buts",
+      "p": 86,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Dortmund ou nul",
+      "d": "Double chance",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Union Berlin marque",
+      "d": "1,0 buts par match cette saison",
+      "p": 68,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "Total du modèle : 3,4 buts",
+      "p": 67,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Dortmund",
+      "d": "Cote du bookmaker sans la marge : 60 %",
+      "p": 64,
+      "o": 1.54
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,1 et 2,3",
+      "p": 61,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "La ligne du bookmaker est 3,5",
+      "p": 55,
+      "o": 1.65
+     }
+    ]
+   },
+   {
+    "ko": "14:30",
+    "home": "Hamburg",
+    "away": "Stuttgart",
+    "p3": [
+     28,
+     21,
+     51
+    ],
+    "xg": [
+     "1,5",
+     "2,1"
+    ],
+    "likely": "Score le plus probable 1 – 2 (9 %)",
+    "ctx": [
+     "Hamburg : 13e, 6 pts · 5 derniers (du plus récent) : D D V V V",
+     "Stuttgart : 12e, 6 pts · 5 derniers (du plus récent) : D V V V V"
+    ],
+    "noMkt": true,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Stuttgart marque",
+      "d": "1,6 buts par match cette saison",
+      "p": 87,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,6 buts",
+      "p": 87,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Pas de match nul",
+      "d": "L'une des deux équipes gagne",
+      "p": 79,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Hamburg marque",
+      "d": "1,0 buts par match cette saison",
+      "p": 78,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "Total du modèle : 3,6 buts",
+      "p": 69,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,5 et 2,1",
+      "p": 68,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "Total du modèle : 3,6 buts",
+      "p": 52,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Stuttgart",
+      "d": "Modèle : 51 %",
+      "p": 51,
+      "o": null
+     }
+    ]
+   },
+   {
+    "ko": "14:30",
+    "home": "Schalke",
+    "away": "Mainz",
+    "p3": [
+     33,
+     26,
+     41
+    ],
+    "xg": [
+     "1,4",
+     "1,6"
+    ],
+    "likely": "Score le plus probable 1 – 1 (11 %)",
+    "ctx": [
+     "Schalke : 14e, 5 pts · 5 derniers (du plus récent) : V N V V D",
+     "Mainz : 9e, 7 pts · 5 derniers (du plus récent) : V D V V D"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Mainz marque",
+      "d": "2,6 buts par match cette saison",
+      "p": 80,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,0 buts",
+      "p": 80,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Schalke marque",
+      "d": "0,8 buts par match cette saison",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Pas de match nul",
+      "d": "L'une des deux équipes gagne",
+      "p": 74,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "Total du modèle : 3,0 buts",
+      "p": 65,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,4 et 1,6",
+      "p": 60,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "La ligne du bookmaker est 2,5",
+      "p": 58,
+      "o": 1.65
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Mainz",
+      "d": "Cote du bookmaker sans la marge : 41 %",
+      "p": 41,
+      "o": 2.25
+     }
+    ]
+   },
+   {
+    "ko": "14:30",
+    "home": "Elversberg",
+    "away": "Augsburg",
+    "p3": [
+     38,
+     25,
+     37
+    ],
+    "xg": [
+     "1,7",
+     "1,7"
+    ],
+    "likely": "Score le plus probable 1 – 1 (9 %)",
+    "ctx": [
+     "Elversberg : 10e, 7 pts · 5 derniers (du plus récent) : D N D V D",
+     "Augsburg : 6e, 8 pts · 5 derniers (du plus récent) : V N D N N"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,5 buts",
+      "p": 86,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Elversberg marque",
+      "d": "1,6 buts par match cette saison",
+      "p": 82,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Augsburg marque",
+      "d": "2,6 buts par match cette saison",
+      "p": 82,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Pas de match nul",
+      "d": "L'une des deux équipes gagne",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "Total du modèle : 3,5 buts",
+      "p": 68,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 1,7 et 1,7",
+      "p": 68,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "La ligne du bookmaker est 3,5",
+      "p": 54,
+      "o": 1.71
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Elversberg",
+      "d": "Cote du bookmaker sans la marge : 38 %",
+      "p": 38,
+      "o": 2.4
+     }
+    ]
+   },
+   {
+    "ko": "14:30",
+    "home": "Werder Bremen",
+    "away": "Paderborn",
+    "p3": [
+     54,
+     23,
+     23
+    ],
+    "xg": [
+     "2,0",
+     "1,2"
+    ],
+    "likely": "Score le plus probable 1 – 1 (10 %)",
+    "ctx": [
+     "Werder Bremen : 7e, 8 pts · 5 derniers (du plus récent) : D V N V N",
+     "Paderborn : 15e, 4 pts · 5 derniers (du plus récent) : D D V V D"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "ts",
+      "n": "Werder Bremen marque",
+      "d": "2,0 buts par match cette saison",
+      "p": 86,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 3,2 buts",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Werder Bremen ou nul",
+      "d": "Double chance",
+      "p": 77,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "Paderborn marque",
+      "d": "0,6 buts par match cette saison",
+      "p": 71,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "Total du modèle : 3,2 buts",
+      "p": 62,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 2,0 et 1,2",
+      "p": 61,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Moins de 3,5 buts",
+      "d": "La ligne du bookmaker est 3,5",
+      "p": 60,
+      "o": 1.65
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Werder Bremen",
+      "d": "Cote du bookmaker sans la marge : 54 %",
+      "p": 54,
+      "o": 1.71
+     }
+    ]
+   },
+   {
+    "ko": "17:30",
+    "home": "Bayern",
+    "away": "RB Leipzig",
+    "p3": [
+     70,
+     15,
+     15
+    ],
+    "xg": [
+     "3,1",
+     "1,4"
+    ],
+    "likely": "Score le plus probable 3 – 1 (8 %)",
+    "ctx": [
+     "Bayern : 3e, 11 pts · 5 derniers (du plus récent) : V V V N N",
+     "RB Leipzig : 5e, 9 pts · 5 derniers (du plus récent) : D V D V V"
+    ],
+    "noMkt": false,
+    "events": [
+     {
+      "fam": "tot",
+      "n": "Plus de 1,5 buts",
+      "d": "Total du modèle : 4,5 buts",
+      "p": 94,
+      "o": null
+     },
+     {
+      "fam": "dc",
+      "n": "Bayern ou nul",
+      "d": "Double chance",
+      "p": 85,
+      "o": null
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 2,5 buts",
+      "d": "Total du modèle : 4,5 buts",
+      "p": 83,
+      "o": null
+     },
+     {
+      "fam": "ts",
+      "n": "RB Leipzig marque",
+      "d": "3,0 buts par match cette saison",
+      "p": 75,
+      "o": null
+     },
+     {
+      "fam": "btts",
+      "n": "Les deux équipes marquent",
+      "d": "Buts du modèle : 3,1 et 1,4",
+      "p": 72,
+      "o": null
+     },
+     {
+      "fam": "win",
+      "n": "Victoire de Bayern",
+      "d": "Cote du bookmaker sans la marge : 78 %",
+      "p": 70,
+      "o": 1.18
+     },
+     {
+      "fam": "tot",
+      "n": "Plus de 3,5 buts",
+      "d": "Total du modèle : 4,5 buts",
+      "p": 66,
+      "o": null
+     }
+    ]
+   }
+  ]
+ }
+];
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+var CH = ["Au-dessus de la cote","Proche du juste prix","Cote trop courte","Pas de cote"];
+function evRow(e, matchLabel) {
+  var be = e.o ? 100 / e.o : null;
+  var chipCls = "none", chipTxt = CH[3];
+  if (be !== null) {
+    var diff = e.p - be;
+    if (diff >= 3) { chipCls = "above"; chipTxt = CH[0]; }
+    else if (diff >= -3) { chipCls = "fair"; chipTxt = CH[1]; }
+    else { chipCls = "short"; chipTxt = CH[2]; }
+  }
+  return '<div class="ev">' +
+    '<span class="ev-name">' + esc(e.n) + '<small>' + (matchLabel ? esc(matchLabel) + ' · ' : '') + esc(e.d) + '</small></span>' +
+    '<span class="meter"><span class="track"><span class="fill" style="width:' + e.p + '%"></span>' +
+      (be !== null ? '<span class="tick" style="left:' + be.toFixed(1) + '%" title="Seuil de rentabilité ' + be.toFixed(0) + '%"></span>' : '') +
+    '</span><span class="pct">' + e.p + '%</span></span>' +
+    '<span class="odds">' + (e.o ? e.o.toFixed(2).replace(".", ",") : '–') + '</span>' +
+    '<span class="chip ' + chipCls + '">' + chipTxt + '</span></div>';
+}
+var COLS = '<div class="ev cols label"><span>Événement, du plus probable au moins probable</span><span>Mon estimation</span><span style="text-align:right">Cote</span><span style="text-align:right">Face à la cote</span></div>';
+
+function matchHtml(m) {
+  var evs = m.events.slice().sort(function (a, b) { return b.p - a.p; });
+  return '<article class="match">' +
+    '<div class="match-head">' +
+      '<div class="mh-top"><span class="label mono">' + m.ko + ' heure du Royaume-Uni</span><span class="label">' + esc(m.likely) + '</span>' + (m.noMkt ? '<span class="tag-nm">Sans cote</span>' : '') + '</div>' +
+      '<div class="mh-teams"><h3>' + esc(m.home) + '<span>-</span>' + esc(m.away) + '</h3><span class="label">Buts du modèle ' + m.xg[0] + ' – ' + m.xg[1] + '</span></div>' +
+      '<div class="ctx"><span>' + esc(m.ctx[0]) + '</span><span>' + esc(m.ctx[1]) + '</span></div>' +
+      '<div><div class="bar" role="img" aria-label="' + esc(m.home + ' ' + m.p3[0] + ' %, nul ' + m.p3[1] + ' %, ' + m.away + ' ' + m.p3[2] + ' %') + '">' +
+        '<div class="seg h" style="flex:' + m.p3[0] + '">' + m.p3[0] + '%</div>' +
+        '<div class="seg d" style="flex:' + m.p3[1] + '">' + m.p3[1] + '%</div>' +
+        '<div class="seg a" style="flex:' + m.p3[2] + '">' + m.p3[2] + '%</div></div>' +
+        '<div class="bar-key"><span>Victoire à domicile</span><span>Match nul</span><span>Victoire à l’extérieur</span></div></div>' +
+    '</div>' + COLS + evs.map(function (e) { return evRow(e, null); }).join("") +
+    '</article>';
+}
+
+function panelHtml(lg) {
+  var all = [];
+  lg.matches.forEach(function (m) {
+    m.events.forEach(function (e) { all.push({ n: e.n, d: e.d, p: e.p, o: e.o, match: m.home + " - " + m.away }); });
+  });
+  all.sort(function (a, b) { return b.p - a.p; });
+  var top = all.filter(function (e) { return e.p < 96; }).slice(0, 8);
+  return '<section class="board">' +
+    '<div class="sec-title"><h2>Événements les plus probables : ' + esc(lg.name) + '</h2><span class="label">' + lg.matches.length + ' matchs</span></div>' +
+    COLS.replace("Événement, du plus probable au moins probable", "Événement") +
+    top.map(function (e) { return evRow(e, e.match); }).join("") +
+    '<div class="legend"><span class="l-fill">Ma probabilité estimée</span><span class="l-tick">Probabilité de rentabilité à la cote affichée</span></div>' +
+    '</section>' +
+    '<div class="matches">' + lg.matches.map(matchHtml).join("") + '</div>';
+}
+
+var tabsEl = document.getElementById("tabs");
+var panelsEl = document.getElementById("panels");
+tabsEl.innerHTML = LEAGUES.map(function (lg) {
+  return '<button class="tab" role="tab" type="button" id="tab-' + lg.id + '" aria-controls="panel-' + lg.id + '" data-id="' + lg.id + '">' + esc(lg.name) + '<small>' + lg.matches.length + '</small></button>';
+}).join("");
+panelsEl.innerHTML = LEAGUES.map(function (lg) {
+  return '<div class="panel" role="tabpanel" id="panel-' + lg.id + '" aria-labelledby="tab-' + lg.id + '" hidden>' + panelHtml(lg) + '</div>';
+}).join("");
+
+function show(id) {
+  LEAGUES.forEach(function (lg) {
+    var on = lg.id === id;
+    document.getElementById("panel-" + lg.id).hidden = !on;
+    document.getElementById("tab-" + lg.id).setAttribute("aria-selected", on ? "true" : "false");
+  });
+  try { localStorage.setItem("fiveLeagueTab", id); } catch (e) {}
+}
+tabsEl.addEventListener("click", function (ev) {
+  var b = ev.target.closest(".tab");
+  if (b) show(b.getAttribute("data-id"));
+});
+var start = LEAGUES[0].id;
+try { var s = localStorage.getItem("fiveLeagueTab"); if (s && document.getElementById("panel-" + s)) start = s; } catch (e) {}
+show(start);
+
+(function () {
+  var btn = document.getElementById("themeBtn");
+  btn.addEventListener("click", function () {
+    var root = document.documentElement;
+    var cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+})();
+</script>
