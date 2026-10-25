@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pronostics 5 championnats, 25 octobre</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a fixture-board summary strip on top, then one detailed card per match, ordered by kick-off. */
+:root {
+  --bg: #F1F0EC;
+  --surface: #FFFFFF;
+  --surface-2: #E6E4DC;
+  --ink: #1A1A1F;
+  --ink-2: #57565E;
+  --line: #D2CFC4;
+  --accent: #1E6B4B;
+  --accent-ink: #FFFFFF;
+  --seg-h: #1F4E79;
+  --seg-d: #8A8A92;
+  --seg-a: #B9521A;
+  --seg-text: #FFFFFF;
+  --warn: #7A5200;
+  --warn-bg: #FBF0D5;
+  --f-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-body: "Barlow", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131316; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+    --line: #36363E; --accent: #5FC495; --accent-ink: #08241A;
+    --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+    --warn: #F0C46A; --warn-bg: #2E2410;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131316; --surface: #1D1D22; --surface-2: #2A2A31; --ink: #EEEDE8; --ink-2: #A9A8B0;
+  --line: #36363E; --accent: #5FC495; --accent-ink: #08241A;
+  --seg-h: #4C86BE; --seg-d: #6A6A74; --seg-a: #E0803F; --seg-text: #0E0E12;
+  --warn: #F0C46A; --warn-bg: #2E2410;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; padding-inline: 16px; padding-block: 28px 56px; }
+.wrap { max-width: 1060px; margin-inline: auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance; line-height: 1.05; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-2); font-weight: 600; }
+
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { font-size: clamp(38px, 8vw, 64px); letter-spacing: .005em; }
+.sub { color: var(--ink-2); max-width: 62ch; }
+
+.board { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.board-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.board-head h2 { font-size: 26px; }
+.row { display: grid; grid-template-columns: 64px minmax(0, 1.6fr) 96px minmax(0, 1fr) 96px; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row.cols { padding-block: 8px; background: var(--surface-2); }
+.row .ko { font-family: var(--f-mono); font-size: 14px; }
+.row .fx { font-family: var(--f-display); font-weight: 600; font-size: 21px; line-height: 1.1; min-width: 0; }
+.row .fx span { color: var(--ink-2); font-weight: 600; font-size: 15px; padding-inline: 4px; }
+.score { font-family: var(--f-display); font-weight: 700; font-size: 30px; letter-spacing: .02em; text-align: center; background: var(--ink); color: var(--bg); border-radius: 6px; padding: 2px 0; }
+.pickcell { font-weight: 600; min-width: 0; }
+.conf { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; }
+.conf.high { color: var(--accent); }
+.conf.med { color: var(--seg-a); }
+.conf.low { color: var(--ink-2); }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 18px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.card-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: center; }
+.team { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.team.away { text-align: right; align-items: flex-end; }
+.team h3 { font-size: 28px; overflow-wrap: anywhere; }
+.team .meta { font-size: 12.5px; color: var(--ink-2); }
+.big { font-family: var(--f-display); font-weight: 700; font-size: 44px; line-height: 1; text-align: center; white-space: nowrap; }
+.big small { display: block; font-family: var(--f-body); font-weight: 600; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 4px; }
+.bar { display: flex; height: 30px; border-radius: 6px; overflow: hidden; gap: 2px; }
+.seg { display: flex; align-items: center; justify-content: center; color: var(--seg-text); font-family: var(--f-mono); font-size: 13px; min-width: 0; }
+.seg.h { background: var(--seg-h); } .seg.d { background: var(--seg-d); } .seg.a { background: var(--seg-a); }
+.bar-key { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--ink-2); margin-top: 5px; }
+.verdict { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.verdict .pill { background: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 4px 12px; border-radius: 99px; font-size: 14px; }
+ul.why { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.news { font-size: 13.5px; border-top: 1px dashed var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.news.unconfirmed { color: var(--ink-2); }
+.risk { font-size: 13.5px; background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 9px 12px; }
+.others { font-size: 13px; color: var(--ink-2); }
+
+.notes { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+.notes h2 { font-size: 24px; margin-bottom: 8px; }
+.notes ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.theme-btn { font: inherit; font-size: 13px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; cursor: pointer; }
+.top-line { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .row { grid-template-columns: 56px minmax(0, 1fr) 72px; grid-template-areas: "ko fx score" "ko pick conf"; row-gap: 6px; }
+  .row.cols { display: none; }
+  .row .ko { grid-area: ko; align-self: start; padding-top: 4px; }
+  .row .fx { grid-area: fx; }
+  .row .score { grid-area: score; }
+  .row .pickcell { grid-area: pick; font-size: 14px; }
+  .row .conf { grid-area: conf; }
+  .teams { grid-template-columns: 1fr 1fr; grid-template-areas: "h a" "s s"; }
+  .teams .big { grid-area: s; order: 3; }
+  .team.home { grid-area: h; } .team.away { grid-area: a; }
+}
+@media (prefers-reduced-motion: no-preference) { .seg { transition: flex-basis .3s; } }
+</style>
+
+<style>
+.ev { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.3fr) 64px 118px; gap: 14px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+.ev:last-child { border-bottom: 0; }
+.ev.cols { padding-block: 8px; background: var(--surface-2); }
+.ev-name { min-width: 0; font-weight: 500; }
+.ev-name small { display: block; color: var(--ink-2); font-size: 12.5px; font-weight: 400; }
+.meter { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.track { position: relative; flex: 1; height: 12px; background: var(--surface-2); border-radius: 6px; min-width: 0; }
+.fill { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 6px; }
+.tick { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--ink); border-radius: 1px; }
+.pct { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 14px; width: 44px; text-align: right; }
+.odds { font-family: var(--f-mono); font-variant-numeric: tabular-nums; font-size: 14px; text-align: right; color: var(--ink-2); }
+.chip { font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; text-align: center; border: 1.5px solid currentColor; justify-self: end; white-space: nowrap; }
+.chip.fair, .chip.above { color: var(--accent); }
+.chip.above { background: var(--surface-2); }
+.chip.short { color: var(--seg-a); }
+.chip.none { color: var(--ink-2); }
+.match { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.match-head { padding: 18px; display: flex; flex-direction: column; gap: 14px; border-bottom: 1px solid var(--line); }
+.mh-top { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.mh-teams { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.mh-teams h3 { font-size: 30px; }
+.mh-teams h3 span { color: var(--ink-2); font-size: 20px; padding-inline: 6px; }
+.legend { font-size: 12.5px; color: var(--ink-2); padding: 10px 16px; border-top: 1px solid var(--line); display: flex; gap: 16px; flex-wrap: wrap; }
+.legend span::before { content: ""; display: inline-block; vertical-align: middle; margin-right: 6px; }
+.legend .l-fill::before { width: 18px; height: 8px; background: var(--accent); border-radius: 4px; }
+.legend .l-tick::before { width: 2px; height: 14px; background: var(--ink); }
+.matches { display: flex; flex-direction: column; gap: 22px; }
+.callout { background: var(--warn-bg); color: var(--warn); border-radius: 10px; padding: 12px 16px; font-size: 14px; }
+.callouts { display: flex; flex-direction: column; gap: 10px; }
+.sec-title { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.sec-title h2 { font-size: 26px; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; background: var(--bg); padding-block: 8px; }
+.tab { font: inherit; font-weight: 600; font-size: 14px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); border-radius: 99px; padding: 7px 14px; cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tab small { font-weight: 500; opacity: .75; margin-left: 4px; }
+.panel { display: flex; flex-direction: column; gap: 22px; }
+@media (max-width: 720px) {
+  .ev { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name chip" "meter odds"; row-gap: 6px; }
+  .ev.cols { display: none; }
+  .ev .ev-name { grid-area: name; } .ev .meter { grid-area: meter; } .ev .odds { grid-area: odds; } .ev .chip { grid-area: chip; }
+}
+</style>
+<style>
+.panel[hidden] { display: none; }
+.ctx { font-size: 12.5px; color: var(--ink-2); display: flex; flex-direction: column; gap: 2px; }
+.tag-nm { font-size: 11.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--warn); background: var(--warn-bg); border-radius: 99px; padding: 2px 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top-line"><span class="label">Dimanche 25 octobre 2026 · 20 matchs dans 5 championnats · Heures de coup d'envoi en CET (les horloges du Royaume-Uni ont changé ce matin), identiques à l'heure de Kinshasa</span><button class="theme-btn" id="themeBtn" type="button">Changer de thème</button></div>
+    <h1>Pronostics : 5 championnats</h1>
+    <p class="sub">Le score et les événements les plus probables des 20 matchs de Liga, Serie A, Premier League, Ligue 1 et Bundesliga encore à jouer dimanche après-midi et soir. Ce sont mes propres estimations, établies à partir des classements, des buts marqués et encaissés et des informations d'effectif trouvées sur le web. Aucune cote de bookmaker n'a été utilisée : rien ici ne dit si un pari est intéressant.</p>
+  </header>
+  <div class="callouts"><div class="callout"><strong>Les informations d'effectif ne sont que partiellement vérifiées.</strong> Les éléments « probable » concordent dans plusieurs avant-matchs ; les éléments « incertain » viennent d'une seule source, voire d'aucune. Aucune composition officielle n'était publiée à la rédaction. Vérifiez-les environ une heure avant le coup d'envoi.</div><div class="callout"><strong>Les classements viennent d'une seule source (ESPN).</strong> Les équipes ont joué entre 6 et 10 matchs, donc les moyennes sont instables. Les petits écarts sont du bruit.</div><div class="callout"><strong>Ligue 1, Hoffenheim - Leverkusen et Genoa - Venezia n'ont aucune information d'effectif vérifiée.</strong> Leurs pronostics reposent uniquement sur le classement et les buts, la confiance est donc plus faible.</div><div class="callout"><strong>Déjà commencés et non couverts :</strong> Inter - Fiorentina et Athletic - Getafe.</div></div>
+  <section class="board">
+    <div class="board-head"><h2>Les pronostics du jour, par heure de coup d'envoi</h2><span class="label">20 matchs</span></div>
+    <div class="row cols label"><span>Heure</span><span>Match</span><span style="text-align:center">Score</span><span>Pronostic</span><span style="text-align:center">Confiance</span></div>
+    <div class="row"><span class="ko">15:00</span><span class="fx">Monaco<span>v</span>Lille</span><span class="score">1-1</span><span class="pickcell">Match nul, moins de 2,5 buts</span><span class="conf low">Faible</span></div>
+    <div class="row"><span class="ko">15:00</span><span class="fx">Crystal Palace<span>v</span>Newcastle</span><span class="score">2-2</span><span class="pickcell">Les deux équipes marquent, plus de 2,5 buts</span><span class="conf med">Moyenne</span></div>
+    <div class="row"><span class="ko">15:00</span><span class="fx">Hull City<span>v</span>Brentford</span><span class="score">1-1</span><span class="pickcell">Match nul, les deux équipes marquent</span><span class="conf low">Faible</span></div>
+    <div class="row"><span class="ko">15:00</span><span class="fx">Liverpool<span>v</span>Brighton</span><span class="score">2-1</span><span class="pickcell">Courte victoire de Liverpool, les deux équipes marquent</span><span class="conf low">Faible</span></div>
+    <div class="row"><span class="ko">15:00</span><span class="fx">Manchester United<span>v</span>Bournemouth</span><span class="score">2-1</span><span class="pickcell">Courte victoire de United, les deux équipes marquent</span><span class="conf low">Faible</span></div>
+    <div class="row"><span class="ko">15:00</span><span class="fx">Atalanta<span>v</span>Frosinone</span><span class="score">1-1</span><span class="pickcell">Nul ou courte victoire de l'Atalanta, les deux équipes marquent</span><span class="conf low">Faible</span></div>
+    <div class="row"><span class="ko">15:00</span><span class="fx">Genoa<span>v</span>Venezia</span><span class="score">1-0</span><span class="pickcell">Victoire de Genoa ou nul, moins de 2,5 buts</span><span class="conf low">Faible</span></div>
+    <div class="row"><span class="ko">15:30</span><span class="fx">Hoffenheim<span>v</span>Bayer Leverkusen</span><span class="score">1-3</span><span class="pickcell">Victoire de Leverkusen, les deux équipes marquent</span><span class="conf med">Moyenne</span></div>
+    <div class="row"><span class="ko">16:15</span><span class="fx">Celta Vigo<span>v</span>Real Betis</span><span class="score">1-1</span><span class="pickcell">Match nul</span><span class="conf low">Faible</span></div>
+    <div class="row"><span class="ko">17:15</span><span class="fx">Rennes<span>v</span>Strasbourg</span><span class="score">2-1</span><span class="pickcell">Victoire de Rennes, les deux équipes marquent, plus de 2,5 buts</span><span class="conf low">Faible</span></div>
+    <div class="row"><span class="ko">17:15</span><span class="fx">Marseille<span>v</span>Le Havre</span><span class="score">2-0</span><span class="pickcell">Victoire de Marseille</span><span class="conf med">Moyenne</span></div>
+    <div class="row"><span class="ko">17:15</span><span class="fx">Toulouse<span>v</span>Troyes</span><span class="score">2-0</span><span class="pickcell">Victoire de Toulouse</span><span class="conf med">Moyenne</span></div>
+    <div class="row"><span class="ko">17:15</span><span class="fx">Angers<span>v</span>Lorient</span><span class="score">1-1</span><span class="pickcell">Nul ou courte victoire de Lorient</span><span class="conf low">Faible</span></div>
+    <div class="row"><span class="ko">17:15</span><span class="fx">Auxerre<span>v</span>Le Mans</span><span class="score">2-2</span><span class="pickcell">Les deux équipes marquent, plus de 2,5 buts</span><span class="conf low">Faible</span></div>
+    <div class="row"><span class="ko">17:30</span><span class="fx">Freiburg<span>v</span>Bayern Munich</span><span class="score">1-3</span><span class="pickcell">Victoire du Bayern</span><span class="conf med">Moyenne</span></div>
+    <div class="row"><span class="ko">17:30</span><span class="fx">Sunderland<span>v</span>Leeds United</span><span class="score">1-2</span><span class="pickcell">Victoire de Leeds</span><span class="conf med">Moyenne</span></div>
+    <div class="row"><span class="ko">18:00</span><span class="fx">Lecce<span>v</span>Juventus</span><span class="score">1-1</span><span class="pickcell">Match nul, moins de 2,5 buts</span><span class="conf low">Faible</span></div>
+    <div class="row"><span class="ko">18:30</span><span class="fx">Real Sociedad<span>v</span>Levante</span><span class="score">2-1</span><span class="pickcell">Victoire de la Real Sociedad, les deux équipes marquent</span><span class="conf low">Faible</span></div>
+    <div class="row"><span class="ko">20:45</span><span class="fx">Udinese<span>v</span>AC Milan</span><span class="score">0-2</span><span class="pickcell">Victoire du Milan</span><span class="conf med">Moyenne</span></div>
+    <div class="row"><span class="ko">21:00</span><span class="fx">Barcelona<span>v</span>Real Madrid</span><span class="score">3-2</span><span class="pickcell">Victoire du Barça, les deux équipes marquent, plus de 2,5 buts</span><span class="conf low">Faible</span></div>
+  </section>
+  <h2>Premier League <span class="label">5 matchs</span></h2>
+  <div class="cards">
+    <article class="card">
+      <div class="card-top"><span class="label mono">15:00 (CET)</span><span class="conf med">Moyenne</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Crystal Palace</h3><span class="meta">classement 16 · 7 pts</span></div>
+        <div class="big"><small>Score prévu</small>2 - 2</div>
+        <div class="team away"><h3>Newcastle</h3><span class="meta">classement 14 · 8 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Les deux équipes marquent, plus de 2,5 buts</span></div>
+      <ul class="why"><li>Palace ont la pire différence de buts du championnat (-8 : 9 marqués, 17 encaissés) après une défaite 5-0 à Brighton.</li><li>Newcastle ont encaissé 12 buts sur leurs six derniers matchs, dont quatre à Leeds et quatre à Coventry.</li></ul>
+      <div class="news"><span class="label">Effectifs</span><span>Newcastle : Livramento et Burn absents. Palace : Riad et Tomiyasu absents, Henderson de retour à l'entraînement mais incertain, Timber et Strand Larsen incertains (probable, d'après des avant-matchs).</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">15:00 (CET)</span><span class="conf low">Faible</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Hull City</h3><span class="meta">classement 11 · 9 pts</span></div>
+        <div class="big"><small>Score prévu</small>1 - 1</div>
+        <div class="team away"><h3>Brentford</h3><span class="meta">classement 7 · 10 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Match nul, les deux équipes marquent</span></div>
+      <ul class="why"><li>Brentford ont fait 4 nuls en 7 matchs, Hull 3. Aucun net avantage au classement (10 contre 9 points).</li><li>Brentford marquent plus (13 contre 8) et encaissent à peu près autant (8 contre 7).</li></ul>
+      <div class="news unconfirmed"><span class="label">Effectifs</span><span>Un avant-match liste Hull sans Hughes, Mendy, Gyabi, Targett, Ansah et Matazo, et Brentford avec deux suspendus (incertain : une seule source).</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">15:00 (CET)</span><span class="conf low">Faible</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Liverpool</h3><span class="meta">classement 5 · 12 pts</span></div>
+        <div class="big"><small>Score prévu</small>2 - 1</div>
+        <div class="team away"><h3>Brighton</h3><span class="meta">classement 3 · 16 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Courte victoire de Liverpool, les deux équipes marquent</span></div>
+      <ul class="why"><li>Brighton ont la meilleure attaque du championnat : 23 buts en 7 matchs. Liverpool comptent 3 nuls et 9 buts en 7.</li><li>Anfield et une infirmerie de Brighton bien remplie penchent légèrement pour Liverpool, mais le nul est presque aussi probable.</li></ul>
+      <div class="news"><span class="label">Effectifs</span><span>Liverpool : Szoboszlai absent, Barcola disponible, Muñoz incertain. Brighton : Ferguson, Tzimas, Mitoma, Azeez absents ; Steele, Struijk, Minteh, Wieffer incertains (probable). Un titre évoquait un doute météo pour le match ; je n'ai pas pu le confirmer.</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">15:00 (CET)</span><span class="conf low">Faible</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Manchester United</h3><span class="meta">classement 15 · 7 pts</span></div>
+        <div class="big"><small>Score prévu</small>2 - 1</div>
+        <div class="team away"><h3>Bournemouth</h3><span class="meta">classement 17 · 6 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Courte victoire de United, les deux équipes marquent</span></div>
+      <ul class="why"><li>Deux équipes dans le bas de tableau. United ont marqué 10 buts et en ont encaissé 10 ; Bournemouth en ont encaissé 13.</li><li>La confiance de United serait au plus bas après une lourde défaite à Como, ce qui garde le match serré.</li></ul>
+      <div class="news"><span class="label">Effectifs</span><span>United : Yoro et Heaven disponibles, Martínez et Rashford incertains, Dorgu, Shaw, Mainoo, Ugarte et Šeško absents. Bournemouth : Kroupi de retour, Scott absent, Tóth blessé (probable).</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">17:30 (CET)</span><span class="conf med">Moyenne</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Sunderland</h3><span class="meta">classement 20 · 4 pts</span></div>
+        <div class="big"><small>Score prévu</small>1 - 2</div>
+        <div class="team away"><h3>Leeds United</h3><span class="meta">classement 8 · 10 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Victoire de Leeds</span></div>
+      <ul class="why"><li>Sunderland est dernier avec 4 points et n'a plus gagné en championnat depuis août.</li><li>Leeds est 8e, avec 4 nuls en 7 matchs et une bonne défense (6 encaissés).</li></ul>
+      <div class="news"><span class="label">Effectifs</span><span>Sunderland : un défenseur central suspendu et un autre blessé, Isidor absent ; Brobbey pourrait débuter sur le banc. Leeds : quelques doutes physiques (probable).</span></div>
+    </article>
+  </div>
+  <h2>Liga <span class="label">3 matchs</span></h2>
+  <div class="cards">
+    <article class="card">
+      <div class="card-top"><span class="label mono">16:15 (CET)</span><span class="conf low">Faible</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Celta Vigo</h3><span class="meta">classement 9 · 11 pts</span></div>
+        <div class="big"><small>Score prévu</small>1 - 1</div>
+        <div class="team away"><h3>Real Betis</h3><span class="meta">classement 4 · 19 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Match nul</span></div>
+      <ul class="why"><li>Le Celta a fait 5 nuls en 9 matchs et possède la meilleure défense de la Liga (7 buts encaissés). Le Betis est 4e mais joue à l'extérieur.</li><li>Les deux équipes manquent de joueurs.</li></ul>
+      <div class="news"><span class="label">Effectifs</span><span>Celta : Núñez, Román, El-Abdellaoui, Starfelt et Borja Iglesias absents (groupe de 22). Betis : Cucho incertain, Bernal suspendu (le club fait appel) (probable).</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">18:30 (CET)</span><span class="conf low">Faible</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Real Sociedad</h3><span class="meta">classement 5 · 16 pts</span></div>
+        <div class="big"><small>Score prévu</small>2 - 1</div>
+        <div class="team away"><h3>Levante</h3><span class="meta">classement 13 · 10 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Victoire de la Real Sociedad, les deux équipes marquent</span></div>
+      <ul class="why"><li>La Real Sociedad est 5e à domicile ; Levante est 13e. Les deux défenses ont encaissé 17 buts.</li><li>Les deux équipes marquent régulièrement (17 et 15 buts), mais la Real manque de joueurs.</li></ul>
+      <div class="news"><span class="label">Effectifs</span><span>Real Sociedad : Ünal de retour ; Djené suspendu ; Uche, Juanmi, Mangala et Zaid Romero absents. Aucune information sur Levante (probable).</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">21:00 (CET)</span><span class="conf low">Faible</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Barcelona</h3><span class="meta">classement 1 · 27 pts</span></div>
+        <div class="big"><small>Score prévu</small>3 - 2</div>
+        <div class="team away"><h3>Real Madrid</h3><span class="meta">classement 3 · 21 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Victoire du Barça, les deux équipes marquent, plus de 2,5 buts</span></div>
+      <ul class="why"><li>Le Barça a gagné ses 9 matchs de Liga avec 39 buts (4,3 par match). Le Real a gagné 7 matchs sur 9 et marqué 23 buts.</li><li>Le Barça est privé d'Olmo, Koundé, García et Christensen ; le Real de Vinícius (suspendu), Rodrygo, Mendy et Asencio. Des buts des deux côtés est mon pari le plus solide ; le vainqueur l'est beaucoup moins.</li></ul>
+      <div class="news"><span class="label">Effectifs</span><span>Absences ci-dessus (probable, plusieurs avant-matchs concordent). Raphinha attendu en pointe. Pas encore de compositions officielles.</span></div>
+    </article>
+  </div>
+  <h2>Bundesliga <span class="label">2 matchs</span></h2>
+  <div class="cards">
+    <article class="card">
+      <div class="card-top"><span class="label mono">15:30 (CET)</span><span class="conf med">Moyenne</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Hoffenheim</h3><span class="meta">classement 14 · 6 pts</span></div>
+        <div class="big"><small>Score prévu</small>1 - 3</div>
+        <div class="team away"><h3>Bayer Leverkusen</h3><span class="meta">classement 4 · 13 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Victoire de Leverkusen, les deux équipes marquent</span></div>
+      <ul class="why"><li>Hoffenheim marquent (11 en 6 matchs) mais encaissent (14) et ont perdu 4 matchs sur 6. Leverkusen comptent 16 buts en 6.</li><li>Leverkusen sortent d'une victoire 2-1 à domicile contre Fribourg.</li></ul>
+      <div class="news unconfirmed"><span class="label">Effectifs</span><span>Aucune information sur les blessés ou suspendus.</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">17:30 (CET)</span><span class="conf med">Moyenne</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Freiburg</h3><span class="meta">classement 3 · 13 pts</span></div>
+        <div class="big"><small>Score prévu</small>1 - 3</div>
+        <div class="team away"><h3>Bayern Munich</h3><span class="meta">classement 2 · 14 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Victoire du Bayern</span></div>
+      <ul class="why"><li>Le Bayern a marqué 22 buts en 6 matchs et reste invaincu. Fribourg est 3e (15 buts marqués) mais a perdu 3-0 à Monaco en Ligue Conférence en milieu de semaine.</li><li>Les absences du Bayern sont le principal risque pour ce pronostic.</li></ul>
+      <div class="news unconfirmed"><span class="label">Effectifs</span><span>Le Bayern serait sans Musiala, Luis Díaz, Neuer et Kimmich (congé pour raison personnelle) ; Kim Min-jae blessé. D'autres absences rapportées par une seule source, dont l'état de santé de l'entraîneur, ne sont pas retenues (incertain).</span></div>
+    </article>
+  </div>
+  <h2>Serie A <span class="label">4 matchs</span></h2>
+  <div class="cards">
+    <article class="card">
+      <div class="card-top"><span class="label mono">15:00 (CET)</span><span class="conf low">Faible</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Atalanta</h3><span class="meta">classement 11 · 9 pts</span></div>
+        <div class="big"><small>Score prévu</small>1 - 1</div>
+        <div class="team away"><h3>Frosinone</h3><span class="meta">classement 6 · 13 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Nul ou courte victoire de l'Atalanta, les deux équipes marquent</span></div>
+      <ul class="why"><li>L'Atalanta reste sur deux défaites (Milan, Ajax) mais joue à domicile ; Frosinone est un surprenant 6e avec 13 buts en 7 matchs.</li><li>Les problèmes de blessures de l'Atalanta réduisent l'écart.</li></ul>
+      <div class="news unconfirmed"><span class="label">Effectifs</span><span>L'Atalanta serait très touchée par les blessures ; les compositions probables varient selon les sources (incertain).</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">15:00 (CET)</span><span class="conf low">Faible</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Genoa</h3><span class="meta">classement 17 · 4 pts</span></div>
+        <div class="big"><small>Score prévu</small>1 - 0</div>
+        <div class="team away"><h3>Venezia</h3><span class="meta">classement 20 · 3 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Victoire de Genoa ou nul, moins de 2,5 buts</span></div>
+      <ul class="why"><li>Genoa ont marqué 5 buts en 7 matchs ; Venezia est dernier avec 16 buts encaissés.</li><li>Match probablement pauvre en buts, avec un léger avantage pour l'équipe à domicile.</li></ul>
+      <div class="news unconfirmed"><span class="label">Effectifs</span><span>Aucune information fiable sur les blessures.</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">18:00 (CET)</span><span class="conf low">Faible</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Lecce</h3><span class="meta">classement 12 · 9 pts</span></div>
+        <div class="big"><small>Score prévu</small>1 - 1</div>
+        <div class="team away"><h3>Juventus</h3><span class="meta">classement 9 · 11 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Match nul, moins de 2,5 buts</span></div>
+      <ul class="why"><li>La Juventus a neuf joueurs indisponibles. Lecce a gagné 3-0 à Udine la semaine dernière, mais ses attaquants n'ont pas marqué en championnat.</li><li>La qualité de la Juve l'empêche d'être un net outsider.</li></ul>
+      <div class="news"><span class="label">Effectifs</span><span>Juventus absents : Locatelli, Yıldız, Thuram, Grabara, Conceição, Çelik, N. González (Milik incertain). Lecce absents : Coulibaly, Pierotti ; Ilić et Berisha incertains (probable).</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">20:45 (CET)</span><span class="conf med">Moyenne</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Udinese</h3><span class="meta">classement 16 · 4 pts</span></div>
+        <div class="big"><small>Score prévu</small>0 - 2</div>
+        <div class="team away"><h3>AC Milan</h3><span class="meta">classement 5 · 15 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Victoire du Milan</span></div>
+      <ul class="why"><li>Udinese est 16e, avec 5 défaites en 7 matchs et 16 buts encaissés. Le Milan est 5e et invaincu (4 victoires, 3 nuls).</li><li>Le Milan compte de nombreuses absences et sort d'une lourde défaite européenne en milieu de semaine, d'où une confiance limitée.</li></ul>
+      <div class="news unconfirmed"><span class="label">Effectifs</span><span>Absents du Milan non vérifiés. Les sources divergent sur l'équipe qui reçoit (ESPN cite le Milan en premier, Sky Italia cite Udinese en premier).</span></div>
+    </article>
+  </div>
+  <h2>Ligue 1 <span class="label">6 matchs</span></h2>
+  <div class="cards">
+    <article class="card">
+      <div class="card-top"><span class="label mono">15:00 (CET)</span><span class="conf low">Faible</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Monaco</h3><span class="meta">classement 5 · 14 pts</span></div>
+        <div class="big"><small>Score prévu</small>1 - 1</div>
+        <div class="team away"><h3>Lille</h3><span class="meta">classement 3 · 14 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Match nul, moins de 2,5 buts</span></div>
+      <ul class="why"><li>À égalité à 14 points, 4 victoires, 2 nuls, 1 défaite chacun.</li><li>Deux des défenses les plus solides du haut de tableau : Monaco 6 buts encaissés, Lille 5 en 7 matchs.</li></ul>
+      <div class="news unconfirmed"><span class="label">Effectifs</span><span>Aucune information d'effectif trouvée pour les deux équipes.</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">17:15 (CET)</span><span class="conf low">Faible</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Rennes</h3><span class="meta">classement 7 · 13 pts</span></div>
+        <div class="big"><small>Score prévu</small>2 - 1</div>
+        <div class="team away"><h3>Strasbourg</h3><span class="meta">classement 14 · 7 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Victoire de Rennes, les deux équipes marquent, plus de 2,5 buts</span></div>
+      <ul class="why"><li>Deux défenses perméables : Rennes 14 encaissés, Strasbourg 15, en 7 matchs.</li><li>Rennes est 7e avec 15 buts marqués ; Strasbourg n'a gagné que 2 matchs sur 7.</li></ul>
+      <div class="news unconfirmed"><span class="label">Effectifs</span><span>Aucune information d'effectif trouvée.</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">17:15 (CET)</span><span class="conf med">Moyenne</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Marseille</h3><span class="meta">classement 10 · 9 pts</span></div>
+        <div class="big"><small>Score prévu</small>2 - 0</div>
+        <div class="team away"><h3>Le Havre</h3><span class="meta">classement 18 · 2 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Victoire de Marseille</span></div>
+      <ul class="why"><li>Le Havre est dernier, sans victoire et avec 2 points. Marseille a marqué 14 buts en 7 matchs.</li><li>Marseille a toutefois perdu 4 matchs sur 7 : la victoire à domicile n'est pas assurée.</li></ul>
+      <div class="news unconfirmed"><span class="label">Effectifs</span><span>Aucune information d'effectif trouvée.</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">17:15 (CET)</span><span class="conf med">Moyenne</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Toulouse</h3><span class="meta">classement 12 · 9 pts</span></div>
+        <div class="big"><small>Score prévu</small>2 - 0</div>
+        <div class="team away"><h3>Troyes</h3><span class="meta">classement 17 · 4 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Victoire de Toulouse</span></div>
+      <ul class="why"><li>Troyes a 4 points et 16 buts encaissés en 7 matchs, la pire défense du championnat.</li><li>Toulouse a marqué 12 buts en 7 matchs, une attaque correcte pour un 12e.</li></ul>
+      <div class="news unconfirmed"><span class="label">Effectifs</span><span>Aucune information d'effectif trouvée.</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">17:15 (CET)</span><span class="conf low">Faible</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Angers</h3><span class="meta">classement 15 · 7 pts</span></div>
+        <div class="big"><small>Score prévu</small>1 - 1</div>
+        <div class="team away"><h3>Lorient</h3><span class="meta">classement 8 · 11 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Nul ou courte victoire de Lorient</span></div>
+      <ul class="why"><li>Lorient est 8e avec une défense solide (6 encaissés en 7 matchs). Angers est 15e et a encaissé 15 buts.</li><li>L'avantage du terrain pour Angers compense une partie de l'écart.</li></ul>
+      <div class="news unconfirmed"><span class="label">Effectifs</span><span>Aucune information d'effectif trouvée.</span></div>
+    </article>
+    <article class="card">
+      <div class="card-top"><span class="label mono">17:15 (CET)</span><span class="conf low">Faible</span></div>
+      <div class="teams">
+        <div class="team home"><h3>Auxerre</h3><span class="meta">classement 13 · 9 pts</span></div>
+        <div class="big"><small>Score prévu</small>2 - 2</div>
+        <div class="team away"><h3>Le Mans</h3><span class="meta">classement 16 · 6 pts</span></div>
+      </div>
+      <div class="verdict"><span class="pill">Les deux équipes marquent, plus de 2,5 buts</span></div>
+      <ul class="why"><li>Les deux défenses prennent l'eau : Auxerre 17 encaissés, Le Mans 15 en 7 matchs.</li><li>Les deux attaques marquent aussi (11 et 10 buts) : des buts des deux côtés sont le scénario principal.</li></ul>
+      <div class="news unconfirmed"><span class="label">Effectifs</span><span>Aucune information d'effectif trouvée.</span></div>
+    </article>
+  </div>
+  <section class="notes">
+    <div><h2>Comment lire cette page</h2><ul><li>Le score est le résultat exact que je juge le plus probable, pas une certitude. Les scores de football sont très dispersés et un score exact dépasse rarement 15 % de probabilité.</li><li>La confiance est mon jugement sur la solidité des données derrière le pronostic : Moyenne = écart net au classement et informations d'effectif cohérentes ; Faible = match serré, données minces ou nombreuses absences.</li><li>Le rang et les points à côté de chaque équipe sont ceux du classement avant les matchs du jour.</li></ul></div>
+    <div><h2>Limites</h2><ul><li>Aucune cote n'a été utilisée : ce n'est ni une analyse de value ni un conseil de pari. Aucun résultat n'est garanti. Ne misez que ce que vous pouvez vous permettre de perdre.</li><li>Les absences peuvent beaucoup changer un pronostic, surtout pour le Bayern, le Barça et la Juventus.</li><li>Les chiffres autres que le classement (buts marqués et encaissés) viennent du même tableau et n'ont pas été recoupés avec une seconde source.</li></ul></div>
+    <div><h2>Sources</h2><ul><li><a href="https://www.skysports.com/football-scores-fixtures/2026-10-25">Sky Sports fixtures, 25 October 2026</a></li><li><a href="https://www.espn.com/soccer/schedule/_/date/20261025">ESPN schedule, 25 October 2026 (fixtures and kick-off times)</a></li><li><a href="https://www.espn.com/soccer/standings/_/league/eng.1">ESPN league tables</a></li><li><a href="https://www.sportsmole.co.uk/football/liverpool/title-race/preview/liverpool-vs-brighton-prediction-team-news-lineups_607574.html">Sports Mole: Liverpool v Brighton</a></li><li><a href="https://www.football365.com/match-preview/crystal-palace-v-newcastle-prediction-preview">Football365: Palace v Newcastle</a></li><li><a href="https://www.football365.com/match-preview/sunderland-v-leeds-prediction-preview">Football365: Sunderland v Leeds</a></li><li><a href="https://www.whoscored.com/matches/1981034/preview/italy-serie-a-2026-2027-lecce-juventus">WhoScored: Lecce v Juventus</a></li><li><a href="https://sport.sky.it/calcio/serie-a/2026/10/24/udinese-milan-probabili-formazioni-8-giornata">Sky Sport Italia: Udinese v Milan</a></li><li><a href="https://infobae.com/america/agencias/2026/10/24/previa-el-betis-quiere-consolidarse-en-champions-en-balaidos">Infobae: Celta v Betis</a></li><li><a href="https://www.bavarianfootballworks.com/bayern-munich-bundesliga/272323/bundesliga-matchday-preview-sc-freiburg-vs-bayern-munich">Bavarian Football Works: Freiburg v Bayern</a></li></ul></div>
+  </section>
+</div>
+<script>
+(function () {
+  var btn = document.getElementById("themeBtn");
+  btn.addEventListener("click", function () {
+    var root = document.documentElement;
+    var cur = root.getAttribute("data-theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+  });
+})();
+</script>
+</body></html>
